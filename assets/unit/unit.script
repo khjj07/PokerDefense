@@ -1,0 +1,380 @@
+local BULLET="#bullet"
+local BOARD = "/board/board"
+local GM="/game_controller"
+local ITEM_SPAWNER="#item"
+local UI={ingame="/ingame/ingame"}
+local PROPERTY={"damage","delay","ignore_armor","critical_damage_rate","critical_rate"}
+local TYPE={
+	{anim="_pawn",damage=5, delay=1, ignore_armor=0.1,critical_damage_rate=1.5,critical_rate=0.1},
+	{anim="_knight",damage=15, delay=0.75, ignore_armor=0.1,critical_damage_rate=1.5,critical_rate=0.1},
+	{anim="_bishop",damage=30, delay=0.75, ignore_armor=0.25,critical_damage_rate=1.5,critical_rate=0.25},
+	{anim="_rook",damage=50, delay=1, ignore_armor=0.5,critical_damage_rate=1.5,critical_rate=0.25},
+	{anim="_queen",damage=75, delay=0.75, ignore_armor=0.25,critical_damage_rate=2.0,critical_rate=0.3},
+	{anim="_king",damage=150, delay=0.5, ignore_armor=0.5,critical_damage_rate=3.0,critical_rate=0.5}
+}
+
+local ITEM = {
+	dagger=1,greatSword=2,bow=3
+}
+
+local SYNERGY_AREA = {
+	{
+		{false,true,false},
+		{true,false,true},
+		{false,true,false},
+	},
+	{
+		{false,true,false,true,false},
+		{true,false,false,false,true},
+		{false,false,false,false,false},
+		{true,false,false,false,true},
+		{false,true,false,true,false},
+	},
+	{
+		{true,false,false,false,false,false,false,false,true},
+		{false,true,false,false,false,false,false,true,false},
+		{false,false,true,false,false,false,true,false,false},
+		{false,false,false,true,false,true,false,false,false},
+		{false,false,false,false,false,false,false,false,false},
+		{false,false,false,true,false,true,false,false,false},
+		{false,false,true,false,false,false,true,false,false},
+		{false,true,false,false,false,false,false,true,false},
+		{true,false,false,false,false,false,false,false,true}
+	},
+	{
+		{false,false,false,false,true,false,false,false,false},
+		{false,false,false,false,true,false,false,false,false},
+		{false,false,false,false,true,false,false,false,false},
+		{false,false,false,false,true,false,false,false,false},
+		{true,true,true,true,false,true,true,true,true},
+		{false,false,false,false,true,false,false,false,false},
+		{false,false,false,false,true,false,false,false,false},
+		{false,false,false,false,true,false,false,false,false},
+		{false,false,false,false,true,false,false,false,false},
+	},
+	{
+		{true,false,false,false,true,false,false,false,true},
+		{false,true,false,false,true,false,false,true,false},
+		{false,false,true,false,true,false,true,false,false},
+		{false,false,false,true,true,true,false,false,false},
+		{true,true,true,true,false,true,true,true,true},
+		{false,false,false,true,true,true,false,false,false},
+		{false,false,true,false,true,false,true,false,false},
+		{false,true,false,false,true,false,false,true,false},
+		{true,false,false,false,true,false,false,false,true}
+	},
+	{
+		{true,true,true},
+		{true,false,true},
+		{true,true,true},
+	}
+}
+go.property("type", 1)
+go.property("cube", msg.url())
+
+local function update_slot(self)
+	msg.post("slot1_1", "disable")
+	msg.post("slot2_1", "disable")
+	msg.post("slot2_2", "disable")
+	msg.post("slot3_1", "disable")
+	msg.post("slot3_2", "disable")
+	msg.post("slot3_3", "disable")
+	if self.rank == 1 then
+		msg.post("slot1_1", "enable")
+	elseif self.rank==2 then
+		msg.post("slot2_1", "enable")
+		msg.post("slot2_2", "enable")
+	elseif self.rank==3 then
+		msg.post("slot3_1", "enable")
+		msg.post("slot3_2", "enable")
+		msg.post("slot3_3", "enable")
+	end
+end
+local function apply_all_effect(self)
+	local damage = self.initial_damage
+	damage = damage+damage*self.tile_effect.damage
+	damage = damage+damage*self.element_effect.damage
+	damage = damage+damage*self.item_effect.damage
+	self.damage = damage
+
+	local delay = self.initial_delay
+	delay = delay-delay*self.tile_effect.delay
+	delay = delay-delay*self.element_effect.delay
+	delay = delay-delay*self.item_effect.delay
+	self.delay = delay
+	
+	local ignore_armor = self.initial_ignore_armor--바로 덧셈 연산
+	ignore_armor = ignore_armor+self.tile_effect.ignore_armor
+	ignore_armor = ignore_armor+self.element_effect.ignore_armor
+	ignore_armor = ignore_armor+self.item_effect.ignore_armor
+	self.ignore_armor = ignore_armor
+	
+	local critical_damage_rate = self.initial_critical_damage_rate--바로 덧셈 연산
+	critical_damage_rate = critical_damage_rate+self.tile_effect.critical_damage_rate
+	critical_damage_rate = critical_damage_rate+self.element_effect.critical_damage_rate
+	critical_damage_rate = critical_damage_rate+self.item_effect.critical_damage_rate
+	self.critical_damage_rate = critical_damage_rate
+	
+	local critical_rate = self.initial_critical_rate--바로 덧셈 연산
+	critical_rate = critical_rate+self.tile_effect.critical_rate
+	critical_rate = critical_rate+self.element_effect.critical_rate
+	critical_rate = critical_rate+self.item_effect.critical_rate
+	self.critical_rate = critical_rate
+end
+
+local function element_assignment(self)
+	local num = math.random(0,100)
+	if num==1 then
+		self.element="wind"
+	elseif num==2 then
+		self.element="ice"
+	elseif num==3 then
+		self.element="fire"
+	elseif num==4 then
+		self.element="poison"
+	elseif num==5 then
+		self.element="lightning"
+	else
+		self.element="normal"
+	end
+	msg.post("#sprite", "play_animation",{id=hash(self.element..TYPE[self.type].anim)})
+	self.anim=self.element..TYPE[self.type].anim
+end
+
+local function element_assignment_merge(self)
+	local num = math.random(0,5)
+	if num==1 then
+		self.element="wind"
+	elseif num==2 then
+		self.element="ice"
+	elseif num==3 then
+		self.element="fire"
+	elseif num==4 then
+		self.element="poison"
+	elseif num==5 then
+		self.element="lightning"
+	end
+	msg.post("#sprite", "play_animation",{id=hash(self.element..TYPE[self.type].anim)})
+end
+
+
+local function attack(self)
+	local num = math.random(0,100) / 100
+	local dmg = self.damage
+	local igam = self.ignore_armor
+	if num<=self.critical_rate then
+		dmg=dmg*self.critical_damage_rate
+	end
+	table.insert(self.bullet,factory.create(BULLET,go.get_position(),nil,{damage=dmg,ignore_armor=igam,final_damage=self.tile_effect.final_damage,boss_damage=self.tile_effect.boss_damage}))
+end
+function init(self)
+	particlefx.play("#smoke")
+	msg.post(".", "release_input_focus")
+	math.randomseed(os.time())
+	self.rank=1
+	self.touch=false
+	self.cube_tmp=nil
+	self.initial_damage=TYPE[self.type].damage
+	self.initial_delay=TYPE[self.type].delay
+	self.initial_ignore_armor=TYPE[self.type].ignore_armor
+	self.initial_critical_damage_rate=TYPE[self.type].critical_damage_rate
+	self.initial_critical_rate=TYPE[self.type].critical_rate
+	self.damage=TYPE[self.type].damage
+	self.delay=TYPE[self.type].delay
+	self.ignore_armor=TYPE[self.type].ignore_armor
+	self.critical_damage_rate=TYPE[self.type].critical_damage_rate
+	self.critical_rate=TYPE[self.type].critical_rate
+	self.my_synergy_area=SYNERGY_AREA[self.type]
+	self.element="normal_pawn"
+	self.tile_effect={damage=0,delay=0,ignore_armor=0,critical_damage_rate=0,critical_rate=0}
+	self.element_effect={damage=0,delay=0,ignore_armor=0,critical_damage_rate=0,critical_rate=0}
+	self.item_effect={damage=0,delay=0,ignore_armor=0,critical_damage_rate=0,critical_rate=0}
+	self.bullet={}
+	self.attack_target=nil
+	self.merge=nil
+	self.merge_enable=0
+	self.item={}
+	self.cube=self.cube.path
+	self.anim=hash("normal_")
+	element_assignment(self)
+	msg.post(BOARD, "dispose_unit",{area=self.my_synergy_area,cube=self.cube,type=self.type})
+	
+	update_slot(self)
+	self.attack_routine=timer.delay(self.delay, true, function()
+		if self.attack_target then
+			attack(self)
+		end
+	end)
+end
+
+function update(self, dt)
+	self.cube_tmp=nil
+	self.merge=nil
+	self.merge_enable=0
+end
+
+function item_enable(self)
+	if self.rank-#self.item  > 0 then
+		return 1
+	else
+		return -1
+	end
+end
+
+function update_item(self)
+	for i = 1, #self.item do
+		go.delete(self.item[i].node)
+		self.item[i].node=factory.create(ITEM_SPAWNER,vmath.vector3(0,0,0.1),nil,{type=ITEM[self.item[i].type],target=msg.url(),parent=msg.url("slot"..tostring(self.rank).."_"..tostring(i))},vmath.vector3(1,1,1))
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id==hash("drop") then
+		if self.merge then
+			msg.post(self.merge, "merge",{type=self.type,rank=self.rank,item=self.item,element=self.element})
+			msg.post("/touch", "merge")
+		else
+			if self.cube_tmp~=nil then
+				self.cube=self.cube_tmp
+			end
+			go.set_position(go.get_position(self.cube)+vmath.vector3(0,0,0.5))
+			msg.post(GM, "change_cube",{cube=self.cube,contain=true})
+			msg.post(BOARD, "dispose_unit",{area=self.my_synergy_area,cube=self.cube,type=self.type})
+			particlefx.play("#smoke")
+		end
+	end
+	if message_id==hash("pick") then
+		msg.post(BOARD, "remove_unit",{area=self.my_synergy_area,cube=self.cube,type=self.type})
+		msg.post(GM, "change_cube",{cube=self.cube,contain=false})
+	end
+	if message_id==hash("hover") then
+		if self.cube_tmp then
+			msg.post(BOARD, "hover",{area=self.my_synergy_area,hover=self.cube_tmp,merge=self.merge_enable})
+		end
+	end
+	if message_id==hash("collision_response") then
+		if message.other_group==hash("cube")then
+			self.cube_tmp=message.other_id
+		elseif message.other_group==hash("unit")then
+			self.merge=message.other_id
+			if not self.touch then
+				msg.post(message.other_id, "unit_data",{type=self.type,rank=self.rank})
+			end
+		end
+	end
+	if message_id==hash("bullet_delete") then
+		if #self.bullet>0 then
+			for i = 1, #self.bullet do
+				if self.bullet[i] == message.sender then
+					table.remove(self.bullet,i)
+					break
+				end
+			end
+		end
+	end
+	if message_id==hash("enemy_data") then
+		self.attack_target=message.first
+		if #self.bullet>0 then
+			for i = 1, #self.bullet do
+				msg.post(self.bullet[i], "target_update",{sender=go.get_id(),target=self.attack_target})
+			end
+		end
+		if self.attack_target==nil then
+			self.bullet={}
+		end
+	end
+	if message_id==hash("merge") then
+		if message.type==self.type and message.rank==self.rank and self.rank<3 then
+			msg.post(sender, "merge_response",{success=true})
+			self.rank=self.rank+1
+			self.initial_delay=self.initial_delay/2
+			if message.element ~="normal" and self.element ~= "normal" then
+				element_assignment_merge(self)
+			elseif message.element ~="normal" then
+				self.element=message.element
+				msg.post("#sprite", "play_animation",{id=hash(self.element..TYPE[self.type].anim)})
+			end
+			update_slot(self)
+			for i = 1, #self.item do
+				go.delete(self.item[i].node)
+			end
+			for i = 1, #message.item do
+				if #self.item<3 then
+					table.insert(self.item, message.item[i])
+				end
+			end
+			self.item_effect={damage=0,delay=0,ignore_armor=0,critical_damage_rate=0,critical_rate=0}
+			update_item(self)
+			msg.post(".", "update_properties")
+		else
+			msg.post(sender, "merge_response",{success=false})
+		end
+	end
+	if message_id==hash("merge_response") then
+		if message.success then
+			msg.post(GM, "merge_unit",{sender=go.get_id()})
+		else
+			go.set_position(go.get_position(self.cube)+vmath.vector3(0,0,0.5))
+			msg.post(GM, "change_cube",{cube=self.cube,contain=true})
+			msg.post(BOARD, "dispose_unit",{area=self.my_synergy_area,cube=self.cube,type=self.type})
+		end
+	end
+	if message_id==hash("unit_data") then
+		if message.type == self.type and message.rank==self.rank then
+			self.merge_enable=1
+		else
+			self.merge_enable=-1
+		end
+	end
+	if message_id==hash("update_properties") then
+		apply_all_effect(self)
+		timer.cancel(self.attack_routine)
+		self.attack_routine=timer.delay(self.delay, true, function()
+			if self.attack_target then
+				attack(self)
+			end
+		end)
+	end
+	if message_id==hash("apply_synergy") then
+		self.tile_effect = message
+		msg.post(".", "update_properties")
+	end
+	if message_id==hash("apply_element") then
+		self.element_effect = message
+		msg.post(".", "update_properties")
+	end
+	if message_id==hash("apply_item") then
+		self.item_effect = message
+		msg.post(".", "update_properties")
+	end
+	if message_id==hash("put_item") then
+		table.insert(self.item, {node=factory.create(ITEM_SPAWNER,vmath.vector3(0,0,0.1),nil,{type=ITEM[message.item],target=msg.url(),parent=msg.url("slot"..tostring(self.rank).."_"..tostring(#self.item+1))},vmath.vector3(1,1,1)),type=message.item})
+	end
+	if message_id==hash("equip") then
+		for i=1,#PROPERTY do
+			if message.effect[PROPERTY[i]] then
+				self.item_effect[PROPERTY[i]]=self.item_effect[PROPERTY[i]]+message.effect[PROPERTY[i]]
+			end
+		end
+		msg.post(".", "update_properties")
+	end
+	if message_id==hash("information") then
+		local base={
+		damage=self.initial_damage,
+		delay=self.initial_delay,
+		ignore_armor=self.initial_ignore_armor,
+		critical_damage_rate=self.initial_critical_damage_rate,
+		critical_rate=self.initial_critical_rate}
+		local tile=message
+		local item={
+		damage=self.item_effect.damage,
+		delay=self.item_effect.delay,
+		ignore_armor=self.item_effect.ignore_armor,
+		critical_damage_rate=self.item_effect.critical_damage_rate,
+		critical_rate=self.item_effect.critical_rate}
+		local information = {base=base,tile=tile,item=item}
+		print(self.element)
+		msg.post(UI.ingame, "information",{type=self.type,info=information,element=self.element,anim=self.anim})
+	end
+end
+

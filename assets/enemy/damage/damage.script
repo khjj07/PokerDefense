@@ -1,0 +1,9 @@
+go.property("damage", 0)
+function init(self)
+	self.damage=math.floor(self.damage)
+	label.set_text("#label", tostring(self.damage))
+	go.animate(".", "position",go.PLAYBACK_ONCE_FORWARD,  go.get_position()+vmath.vector3(0,50,0), go.EASING_LINEAR, 1)
+	go.animate("#label", "color.w", go.PLAYBACK_ONCE_FORWARD,0.3, go.EASING_INEXPO, 0.7,0,function()
+		go.delete()
+	end)
+end

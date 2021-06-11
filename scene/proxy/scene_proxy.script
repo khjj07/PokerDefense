@@ -1,0 +1,23 @@
+function init(self)
+	self.current="#title"
+	msg.post(self.current, "load")
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("proxy_loaded") then
+		msg.post(sender, "init")
+		msg.post(sender, "enable")
+		msg.post(sender, "acquire_input_focus")
+	end
+	if message_id == hash("proxy_unloaded") then
+		if self.current then
+			msg.post(self.current, "load")
+		end
+	end
+	if message_id == hash("change_scene") then
+		msg.post(self.current, "disable")
+		msg.post(self.current, "final")
+		msg.post(self.current, "unload")
+		self.current=message.next
+	end
+end

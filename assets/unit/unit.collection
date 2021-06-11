@@ -1,0 +1,148 @@
+name: "default"
+instances {
+  id: "unit"
+  prototype: "/assets/unit/unit.go"
+  children: "slot1_1"
+  children: "slot2_1"
+  children: "slot2_2"
+  children: "slot3_1"
+  children: "slot3_2"
+  children: "slot3_3"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "slot1_1"
+  prototype: "/assets/unit/slot/slot.go"
+  position {
+    x: 0.0
+    y: 35.0
+    z: 0.5
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "slot2_1"
+  prototype: "/assets/unit/slot/slot.go"
+  position {
+    x: -12.0
+    y: 35.0
+    z: 0.5
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "slot2_2"
+  prototype: "/assets/unit/slot/slot.go"
+  position {
+    x: 12.0
+    y: 35.0
+    z: 0.5
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "slot3_1"
+  prototype: "/assets/unit/slot/slot.go"
+  position {
+    x: -20.0
+    y: 35.0
+    z: 0.5
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "slot3_2"
+  prototype: "/assets/unit/slot/slot.go"
+  position {
+    x: 0.0
+    y: 35.0
+    z: 0.5
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "slot3_3"
+  prototype: "/assets/unit/slot/slot.go"
+  position {
+    x: 20.0
+    y: 35.0
+    z: 0.5
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+scale_along_z: 0

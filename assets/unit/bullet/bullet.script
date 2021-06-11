@@ -1,0 +1,47 @@
+go.property("damage", 5)
+go.property("ignore_armor", 0)
+go.property("final_damage", 0)
+go.property("boss_damage", 0)
+function destroy(self)
+	go.delete()
+end
+function hit(self,enemy)
+	msg.post(enemy, "hit",{damage=self.damage,ignore=self.ignore_armor,final_damage=self.final_damage,boss_damage=self.boss_damage})
+	if self.unit then
+		msg.post(self.unit, "bullet_delete",{sender=go.get_id()})
+	end
+	destroy(self)
+end
+
+function init(self)
+	self.unit = nil
+	self.target=nil
+	self.synergy={}
+	self.vel=vmath.vector3()
+	self.dir=vmath.vector3()
+	self.speed=1000
+	go.set_scale(vmath.vector3(0.5,0.5,1))
+end
+
+function update(self, dt)
+	if self.target  then
+		go.set_position(go.get_position()+self.vel*dt)
+	else
+		destroy(self)
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id==hash("target_update") then
+		self.unit = message.sender
+		self.target = message.target
+		if self.target then
+			self.dir=vmath.normalize(go.get_position(self.target)-go.get_position())
+			self.vel=self.dir*self.speed
+			local distance=vmath.length(go.get_position(self.target)-go.get_position())
+			if distance < 50 then
+				hit(self,self.target)
+			end
+		end
+	end
+end

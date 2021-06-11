@@ -1,0 +1,67 @@
+local TYPE={
+	{anim="enemy_pawn",hp=100, armor=0.05, coin=50,items={{"dagger",0.01},{"greatSword",0.01},{"bow",0.01}}},
+	{anim="enemy_knight",hp=500, armor=0.15, coin=50,items={{"dagger",0.01},{"greatSword",0.01},{"bow",0.01}}},
+	{anim="enemy_bishop",hp=1000, armor=0.2, coin=50,items={{"dagger",0.01},{"greatSword",0.01},{"bow",0.01}}},
+	{anim="enemy_rook",hp=1500, armor=0.2, coin=50,items={{"dagger",0.01},{"greatSword",0.01},{"bow",0.01}}},
+	{anim="enemy_queen",hp=3000, armor=0.25, coin=50,items={{"dagger",0.01},{"greatSword",0.01},{"bow",0.01}}},
+	{anim="enemy_king",hp=5000, armor=0.5, coin=50,items={{"dagger",0.01},{"greatSword",0.01},{"bow",0.01}}}
+}
+local GM = "/game_controller"
+go.property("type", 1)
+
+function init(self)
+	self.node={go.get_id("path/node0"),go.get_id("path/node1"),go.get_id("path/node2"),go.get_id("path/node3"),go.get_id("path/node4")}
+	self.destination=go.get_position(self.node[1])
+	self.index=1
+	self.speed=300
+	
+	msg.post("#sprite", "play_animation",{id=hash(TYPE[self.type].anim)})
+	self.maxhp=TYPE[self.type].hp
+	self.hp=TYPE[self.type].hp
+	self.armor=TYPE[self.type].armor
+	self.coin=TYPE[self.type].coin
+	go.set_scale(vmath.vector3(1.5,1.5,1))
+	sprite.set_constant("#hp", "tint", vmath.vector4(1, 1, 1, 0))
+	sprite.set_constant("#hpbar", "tint", vmath.vector4(1, 1, 1, 0))
+end
+function update(self, dt)
+	local my_position = go.get_position()
+	my_position.z=my_position.y*-0.001+my_position.x*0.00000001
+	if vmath.length(self.destination-go.get_position()) <= self.speed*dt then
+		go.set_position(self.destination+vmath.vector3(0,0,my_position.z))
+		if self.index==#self.node then
+			self.index=1
+		else
+			self.index=self.index+1
+		end
+		self.destination=go.get_position(self.node[self.index])
+	else
+		go.set_position(my_position+vmath.normalize(self.destination-go.get_position())*self.speed*dt)
+	end
+end
+function on_message(self, message_id, message, sender)
+	if message_id==hash("hit") then
+		local dmg = message.damage
+		if self.armor-message.ignore>0 then
+			dmg=dmg-message.damage*(self.armor-message.ignore)
+		end
+		if message.final_damage >0 then
+			dmg=dmg*message.final_damage
+		end
+		self.hp=self.hp-dmg
+		local position = vmath.vector3(go.get_position().x,go.get_position().y,0)
+		local damage = factory.create("#damage",position,nil,{damage=math.floor(dmg)})
+		sprite.set_constant("#hp", "tint", vmath.vector4(1, 1, 1, 1))
+		sprite.set_constant("#hpbar", "tint", vmath.vector4(1, 1, 1, 1))
+		if self.hp>0 then
+			go.set("#hp", "scale.x", self.hp/self.maxhp)
+		end
+		if self.hp<=0 then
+			msg.post(GM, "dead_check",{sender=go.get_id(),coin=self.coin,items=TYPE[self.type].items})
+			msg.post("#body", "disable")
+		end
+	end
+	if message_id==hash("kill") then
+		destroy(self)
+	end
+end

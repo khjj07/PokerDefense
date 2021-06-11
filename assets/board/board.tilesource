@@ -1,0 +1,40 @@
+image: "/resource/chess_board.png"
+tile_width: 16
+tile_height: 16
+tile_margin: 0
+tile_spacing: 0
+collision: "/resource/chess_board.png"
+material_tag: "tile"
+convex_hulls {
+  index: 0
+  count: 4
+  collision_group: ""
+}
+convex_hulls {
+  index: 4
+  count: 4
+  collision_group: ""
+}
+convex_hulls {
+  index: 8
+  count: 4
+  collision_group: ""
+}
+convex_hulls {
+  index: 12
+  count: 4
+  collision_group: ""
+}
+collision_groups: "default"
+animations {
+  id: "area"
+  start_tile: 1
+  end_tile: 1
+  playback: PLAYBACK_NONE
+  fps: 0
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+extrude_borders: 2
+inner_padding: 0
+sprite_trim_mode: SPRITE_TRIM_MODE_OFF

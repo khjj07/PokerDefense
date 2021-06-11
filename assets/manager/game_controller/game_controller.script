@@ -1,0 +1,285 @@
+local NORMAL_SPAWNER="#normal"
+local ELITE_SPAWNER="#elite"
+local BOSS_SPAWNER="#boss"
+local UNIT_SPAWNER="#unit"
+local INITAIL_TIMER=60
+local GRID = 25
+UI={ingame="/ingame/ingame"}
+local TYPE={normal=NORMAL_SPAWNER,elite=ELITE_SPAWNER,boss=BOSS_SPAWNER}
+local ITEM={"dagger","greatSword","bow"}
+local ENEMY={pawn=1,knight=2,bishop=3,rook=4,queen=5,king=6}
+local UNIT={pawn=1,knight=2,bishop=3,rook=4,queen=5,king=6}
+local WAVE ={
+	{{TYPE.normal,ENEMY.pawn,20}},
+	{{TYPE.normal,ENEMY.pawn,40}},
+	{{TYPE.normal,ENEMY.pawn,60}},
+	{{TYPE.normal,ENEMY.pawn,80}},
+	{{TYPE.normal,ENEMY.pawn,100}},
+	{{TYPE.elite,ENEMY.pawn,12}},
+	{{TYPE.elite,ENEMY.pawn,18}},
+	{{TYPE.elite,ENEMY.pawn,24}},
+	{{TYPE.boss,ENEMY.pawn,1}},
+	{{TYPE.normal,ENEMY.knight,20}},
+	{{TYPE.normal,ENEMY.knight,40}},
+	{{TYPE.normal,ENEMY.knight,60}},
+	{{TYPE.normal,ENEMY.knight,80}},
+	{{TYPE.normal,ENEMY.knight,100}},
+	{{TYPE.elite,ENEMY.knight,12}},
+	{{TYPE.elite,ENEMY.knight,18}},
+	{{TYPE.elite,ENEMY.knight,24}},
+	{{TYPE.boss,ENEMY.knight,1}},
+	{{TYPE.normal,ENEMY.bishop,20}},
+	{{TYPE.normal,ENEMY.bishop,40}},
+	{{TYPE.normal,ENEMY.bishop,60}},
+	{{TYPE.normal,ENEMY.bishop,80}},
+	{{TYPE.normal,ENEMY.bishop,100}},
+	{{TYPE.elite,ENEMY.bishop,12}},
+	{{TYPE.elite,ENEMY.bishop,18}},
+	{{TYPE.elite,ENEMY.bishop,24}},
+	{{TYPE.boss,ENEMY.bishop,1}},
+	{{TYPE.normal,ENEMY.rook,20}},
+	{{TYPE.normal,ENEMY.rook,40}},
+	{{TYPE.normal,ENEMY.rook,60}},
+	{{TYPE.normal,ENEMY.rook,80}},
+	{{TYPE.normal,ENEMY.rook,100}},
+	{{TYPE.elite,ENEMY.rook,12}},
+	{{TYPE.elite,ENEMY.rook,18}},
+	{{TYPE.elite,ENEMY.rook,24}},
+	{{TYPE.boss,ENEMY.rook,1}}
+}
+
+go.property("spawn_point", msg.url("/path/spawn_point"))
+
+function get_minutes(time)
+	local result = math.floor(time/60)
+	return tostring(result)
+end
+function get_seconds(time)
+	local result = time%60
+	if result>9 then
+		return tostring(result)
+	else
+		return "0"..tostring(result)
+	end
+end
+
+function check_board(self)
+	local count = 0 
+	for i = 1, GRID do
+		if not self.cube[i].contain then
+			count=count+1
+			if count>1 then
+				break
+			end
+		end
+	end
+	return count
+end
+local function generate_unit(self,type)
+	local num = math.random(1,GRID)
+	while self.cube[num].contain == true do
+		num = math.random(1,GRID)
+	end
+	self.cube[num].contain=true
+	if check_board(self) <=1 then
+		msg.post(UI.ingame, "spawn_enable",{enable=false})
+	else
+		msg.post(UI.ingame, "spawn_enable",{enable=true})
+	end
+	local props = {}
+	props[hash("/unit")] = {type=type,cube= msg.url(self.cube[num].node)}
+	return collectionfactory.create(UNIT_SPAWNER,go.get_position(self.cube[num].node)+vmath.vector3(0,0,0.1),nil,props)
+	
+end
+local function spawn_enemy(self)
+	local delay=self.wave[self.wave_flag][1][4] or self.default_spawn_delay
+	self.spawn_handler = timer.delay(delay, false, function(self)
+		local instance = factory.create(self.wave[self.wave_flag][1][1],self.spawn_pos,nil,{type = self.wave[self.wave_flag][1][2] })
+		table.insert(self.enemy, instance)
+		if 	self.play == false then
+			self.play=true
+		end
+		if self.wave[self.wave_flag][1][3] > 1 then
+			self.wave[self.wave_flag][1][3]=self.wave[self.wave_flag][1][3]-1
+		else
+			table.remove(self.wave[self.wave_flag],1)
+		end
+		msg.post(".","next_enemy")
+	end)
+end
+local function item_random_draw(items)
+	local num=math.random(0,10000)/10000
+	local inc=0
+	for i = 1, #items do
+		inc=inc+items[i][2]
+		if num <= inc then
+			return items[i][1]
+		end
+	end
+	return nil
+end
+
+function init(self)
+	math.randomseed(os.time())
+	self.coin=500
+	self.wave=WAVE
+	self.enemy={}
+	self.unit={}
+	self.wave_flag=1
+	self.play=false
+	self.default_spawn_delay=0.1
+	self.enemy_all_out=false
+	self.spawn_pos=go.get_position(self.spawn_point)
+	self.cube={}
+	self.timer=INITAIL_TIMER
+	self.timer_handler=nil
+	for i = 1, GRID do
+		table.insert(self.cube, {node="/board/cube"..tostring(i),contain=false})
+	end
+	msg.post(".", "acquire_input_focus")
+	msg.post(UI.ingame, "timer",{m=get_minutes(self.timer),s=get_seconds(self.timer)})
+end
+
+function update(self, dt)
+	if #self.unit>0 and #self.enemy>0 then
+		for i = 1, #self.unit do
+			msg.post(self.unit[i][hash("/unit")], "enemy_data",{first=self.enemy[1]})
+		end
+	elseif #self.unit>0 then
+		for i = 1, #self.unit do
+			msg.post(self.unit[i][hash("/unit")], "enemy_data",{first=nil})
+		end
+	end
+	if #self.enemy<=0 and self.play and self.enemy_all_out then
+		self.play=false
+		self.enemy_all_out=false
+		self.enemy={}
+		msg.post(UI.ingame, "wave_end",{wave=self.wave_flag})
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id==hash("wave_end") then
+		self.coin=self.coin+500
+		if self.timer_handler then
+			timer.cancel(self.timer_handler)
+		end
+		msg.post(UI.ingame, "get_coin",{coin=self.coin})
+	end
+	if message_id==hash("change_cube") then
+		for i = 1, GRID do
+			if go.get_id(self.cube[i].node) == message.cube then
+				self.cube[i].contain=message.contain
+				break
+			end
+		end
+		for i = 0, 4 do
+			for j=1,5 do
+				num=i*5+j
+			end
+		end
+	end
+	if message_id==hash("hand") then
+		if message.coin then
+			self.coin = self.coin+message.coin
+			msg.post(UI.ingame, "get_coin",{coin=self.coin})
+		end
+		if message.pawn then
+			for i = 1, message.pawn do
+				table.insert(self.unit,generate_unit(self,UNIT.pawn))
+			end
+		end
+		if message.knight then
+			for i = 1, message.knight do
+				table.insert(self.unit,generate_unit(self,UNIT.knight))
+			end
+		end
+		if message.bishop then
+			for i = 1, message.bishop do
+				table.insert(self.unit,generate_unit(self,UNIT.bishop))
+			end
+		end
+		if message.rook then
+			for i = 1, message.rook do
+				table.insert(self.unit,generate_unit(self,UNIT.rook))
+			end
+		end
+		if message.queen then
+			for i = 1, message.queen do
+				table.insert(self.unit,generate_unit(self,UNIT.queen))
+			end
+		end
+		if message.king then
+			for i = 1, message.king do
+				table.insert(self.unit,generate_unit(self,UNIT.king))
+			end
+		end
+		
+	end
+	if message_id==hash("get_coin") then
+		msg.post(sender, "get_coin",{coin=self.coin})
+	end
+	if message_id==hash("set_coin") then
+		self.coin=message.coin 
+	end
+	if message_id==hash("play") then
+		msg.post(UI.ingame, "play_assignment",{wave=self.wave_flag})
+		msg.post(".","next_enemy")
+		self.timer=INITAIL_TIMER
+		msg.post(UI.ingame, "timer",{m=get_minutes(self.timer),s=get_seconds(self.timer)})
+		self.timer_handler=timer.delay(1, true, function()
+			self.timer=self.timer-1
+			msg.post(UI.ingame, "timer",{m=get_minutes(self.timer),s=get_seconds(self.timer)})
+		end)
+	end
+	if message_id==hash("stop")then
+		timer.cancel(self.handler)
+	end
+	if message_id==hash("update_spawn_enable") then
+		if check_board(self) <=1 then
+			msg.post(UI.ingame, "spawn_enable",{enable=false})
+		else
+			msg.post(UI.ingame, "spawn_enable",{enable=true})
+		end
+	end	
+	if message_id==hash("next_enemy") then
+		if #self.wave[self.wave_flag]>0 then
+			spawn_enemy(self)
+		else
+			msg.post(".", "all_out")
+		end
+	end
+	if message_id==hash("dead_check") then
+		for i = 1, #self.enemy do
+			if message.sender==self.enemy[i] then
+				if message.items then
+					local item = item_random_draw(message.items)
+					if item then
+						print("item : "..item)
+						msg.post(UI.ingame, "item",{item=item})
+					end
+				end
+				self.coin=self.coin+message.coin
+				msg.post(UI.ingame, "get_coin",{coin=self.coin})
+				msg.post(self.enemy[i], "kill")
+				table.remove(self.enemy,i)
+				break
+			end
+		end
+	end
+	if message_id==hash("all_out") then
+		self.enemy_all_out=true
+		self.wave_flag=self.wave_flag+1
+	end
+	if message_id==hash("merge_unit") then
+		for i = 1, #self.unit do
+			if self.unit[i][hash("/unit")]==message.sender then
+				go.delete_all(self.unit[i])
+				table.remove(self.unit,i)
+				msg.post(".","update_spawn_enable")
+				break
+			end
+		end
+	end
+	
+end

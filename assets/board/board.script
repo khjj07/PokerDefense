@@ -1,0 +1,107 @@
+function init(self)
+	self.cube={
+		{go.get_id("/board/cube1"),go.get_id("/board/cube2"),go.get_id("/board/cube3"),go.get_id("/board/cube4"),go.get_id("/board/cube5")},
+		{go.get_id("/board/cube6"),go.get_id("/board/cube7"),go.get_id("/board/cube8"),go.get_id("/board/cube9"),go.get_id("/board/cube10")},
+		{go.get_id("/board/cube11"),go.get_id("/board/cube12"),go.get_id("/board/cube13"),go.get_id("/board/cube14"),go.get_id("/board/cube15")},
+		{go.get_id("/board/cube16"),go.get_id("/board/cube17"),go.get_id("/board/cube18"),go.get_id("/board/cube19"),go.get_id("/board/cube20")},
+		{go.get_id("/board/cube21"),go.get_id("/board/cube22"),go.get_id("/board/cube23"),go.get_id("/board/cube24"),go.get_id("/board/cube25")}
+	}
+	self.synergy_area={}
+	self.merge=nil
+end
+
+function find_square_on_board(self,cube)
+	for i = 1, #self.cube do
+		for j = 1,#self.cube[i] do
+			if self.cube[i][j] == cube then
+				return i,j
+			end
+		end
+	end
+end
+function find_area(self,cube,sender)
+	local x,y=find_square_on_board(self,cube)
+	local length=math.floor(#self.synergy_area/2)
+	msg.post(self.cube[x][y], "on_it",{merge=self.merge,sender=sender})
+	for i = -length, length do
+		for j= -length, length do
+			if x+i>0 and x+i<=#self.cube and y+j>0 and y+j<=#self.cube then
+				if self.synergy_area[i+length+1][j+length+1] then
+					msg.post(self.cube[x+i][y+j], "synergy_enable")
+				end
+			end
+		end
+	end
+end
+
+function add_synergy(self,center,sender,type)
+	local x,y=find_square_on_board(self,center)
+	local length=math.floor(#self.synergy_area/2)
+	msg.post(self.cube[x][y], "apply_synergy",{unit=sender})
+	for i = -length, length do
+		for j= -length, length do
+			if x+i>0 and x+i<=#self.cube and y+j>0 and y+j<=#self.cube then
+				if self.synergy_area[i+length+1][j+length+1] then
+					msg.post(self.cube[x+i][y+j], "add_synergy",{type=type})
+				end
+			end
+		end
+	end
+end
+
+function remove_synergy(self,center,sender,type)
+	local x,y=find_square_on_board(self,center)
+	msg.post(self.cube[x][y], "remove_unit",{unit=sender})
+	local length=math.floor(#self.synergy_area/2)
+	for i = -length, length do
+		for j= -length, length do
+			if x+i>0 and x+i<=#self.cube and y+j>0 and y+j<=#self.cube then
+				if self.synergy_area[i+length+1][j+length+1] then
+					msg.post(self.cube[x+i][y+j], "remove_synergy",{type=type})
+				end
+			end
+		end
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id==hash("hover") then
+		self.synergy_area=message.area
+		self.merge=message.merge
+		if message.hover then
+			find_area(self,message.hover,sender)
+		end
+	end
+	if message_id==hash("dispose_unit") then
+		self.synergy_area=message.area
+		add_synergy(self,message.cube,sender,message.type)
+		
+	end
+	if message_id==hash("remove_unit") then
+		self.synergy_area=message.area
+		remove_synergy(self,message.cube,sender,message.type)
+	end
+	if message_id==hash("upgrade_black") then
+		for i = 0, #self.cube-1 do
+			for j = 1, #self.cube[i+1] do
+				if (i*5+j)%2 == 0 then
+					msg.post(self.cube[i+1][j], "upgrade")
+				end
+			end
+		end
+	end
+	if message_id==hash("upgrade_white") then
+		for i = 0, #self.cube-1 do
+			for j = 1, #self.cube[i+1] do
+				if (i*5+j)%2 == 1 then
+					msg.post(self.cube[i+1][j], "upgrade")
+				end
+			end
+		end
+	end
+end
+
+
+
+
+

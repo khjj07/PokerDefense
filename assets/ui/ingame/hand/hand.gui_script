@@ -1,0 +1,187 @@
+local ui=require"assets.ui.module.ui"
+local CARD_SHAPE={"Clubs","Diamonds","Hearts","Spades"}
+local CARD_NUMBER={"7","8","9","10","J","Q","K","A"}
+local COMBINATION = {["HighCard"]={coin=250},["OnePair"]={pawn=1},["TwoPair"]={pawn=2},["Triple"]={knight=1},["FullHouse"]={knight=2},["FourCard"]={queen=1},["FiveCard"]={king=1}
+,["Straight"]={bishop=1},["Mountain"]={bishop=1},["NumberStraight"]={bishop=1},["Flush"]={rook=1},["FiveFlush"]={king=1},["StraightFlush"]={king=1},["RoyalFlush"]={king=1},["NumberFlush"]={king=1}}
+local GM ="scene:/game_controller"
+local UI={ingame="scene:/ingame/ingame#ingame"}
+local PROXY= "main:/hand_proxy"
+local function get_random_card_value()
+	local shape = CARD_SHAPE[math.random(1,4)]
+	local number = CARD_NUMBER[math.random(1,8)]
+	return {shape,number}
+end
+
+local function card_to_number(card)
+	if card=="A" then
+		return 14
+	elseif card=="K" then
+		return 13
+	elseif card=="Q" then
+		return 12
+	elseif card=="J" then
+		return 11 
+	else
+		return tonumber(card)
+	end
+end
+
+local function check_shape(self)
+	local standard = self.card[1].value[1]
+	for i = 2, #self.card do
+		if standard~=self.card[i].value[1] then
+			return false
+		end
+	end
+	return self.card[1].value[1]
+end
+local function check_number(self)
+	local count = {["7"]=0,["8"]=0,["9"]=0,["10"]=0,["J"]=0,["Q"]=0,["K"]=0,["A"]=0}
+	local result = "HighCard"
+	for i = 1, #self.card do
+		count[self.card[i].value[2]]=count[self.card[i].value[2]]+1
+	end
+	for k,v in pairs(count) do
+		if v == 5 then
+			return "FiveCard"
+		elseif v==4 then
+			return "FourCard"
+		elseif v==3 and result == "OnePair" then
+			return "FullHouse"
+		elseif v==2 and result == "Triple" then
+			return "FullHouse"
+		elseif v==2 and result == "OnePair" then
+			return "TwoPair"
+		elseif v==3 then
+			result = "Triple"
+		elseif v==2 then
+			result = "OnePair"
+		elseif result == "HighCard" then
+			result = "HighCard"
+		end
+	end
+	if result=="HighCard" then
+		local tmp = {}
+		for i = 1, #self.card do
+			table.insert(tmp, card_to_number(self.card[i].value[2]))
+		end
+		table.sort(tmp,function(a,b)
+			return a > b
+		end)
+		local standard=tmp[1]
+
+		if standard-1 ~=tmp[2] and standard-4 ~=tmp[2]  then
+			return "HighCard"
+		elseif standard == 14 and standard-1 ==tmp[2]then
+			standard=tmp[2]
+			for i = 3, 5 do
+				if standard-1 ~=tmp[i] then
+					return "HighCard"
+				end
+				standard=tmp[i]
+			end
+			return "Mountain"
+		elseif standard == 14 and standard-4 ==tmp[2]then
+			standard=tmp[2]
+			for i = 3, 5 do
+				if standard-1 ~=tmp[i] then
+					return "HighCard"
+				end
+				standard=tmp[i]
+			end
+			return "NumberStraight"
+		else
+			standard=tmp[2]
+			for i = 3, 5 do
+				if standard-1 ~=tmp[i] then
+					return "HighCard"
+				end
+				standard=tmp[i]
+			end
+			return "Straight"
+		end
+	end
+	return result
+end
+
+local function check_combination(self)
+	local flush = check_shape(self)
+	local num = check_number(self)
+	if flush then
+		if num == "FiveCard" then
+			return "FiveFlush"
+		elseif num == "Straight" then
+			return "StraightFlush"
+		elseif num == "Mountain" then
+			return "LoyalFlush"
+		elseif num == "NumberStraight" then
+			return "NumberFlush"
+		else
+			return "Flush"
+		end
+	else
+		return num
+	end
+end
+
+
+
+function create_card_fit(self)
+	for i = 1, 5 do
+		ui.create_card(self, gui.get_node("card"..tostring(i)), i, get_random_card_value())
+		local card = self.card[i]
+		ui.set_card_texture(card)
+	end
+end
+
+function print_combination(text)
+	gui.set_text(gui.get_node("combination"), text)
+end
+function init(self)
+	math.randomseed(os.time())
+	msg.post(".", "acquire_input_focus")
+	ui.init(self)
+	ui.create_button(self, gui.get_node("reroll_btn1"), 1)
+	ui.create_button(self, gui.get_node("reroll_btn2"), 2)
+	ui.create_button(self, gui.get_node("reroll_btn3"), 3)
+	ui.create_button(self, gui.get_node("reroll_btn4"), 4)
+	ui.create_button(self, gui.get_node("reroll_btn5"), 5)
+	ui.create_button(self, gui.get_node("submit_btn"),6)
+	create_card_fit(self)
+	print_combination(check_combination(self))
+	gui.set_render_order(15)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id==hash("button_released") then
+		if message.id>=1 and message.id<=5 then
+			local card = self.card[message.id]
+			if self.button[message.id].enabled then
+				card.value = get_random_card_value()
+				gui.set_texture(card.node, "card")
+				gui.animate(card.node, "scale.x", 0.1, gui.EASING_LINEAR, 0.2,0,function()
+					gui.play_flipbook(card.node, "cardBack_red5")
+				end,gui.PLAYBACK_ONCE_PINGPONG)
+				timer.delay(0.5, false, function()
+					gui.animate(card.node, "scale.x", 0.1, gui.EASING_LINEAR, 0.2,0,function()
+						ui.set_card_texture(card)
+					end,gui.PLAYBACK_ONCE_PINGPONG)
+				end)
+				self.button[message.id]:hide()
+				print_combination(check_combination(self))
+			end
+		end
+		if message.id==6 then
+			msg.post(UI.ingame, "submit")
+			msg.post(PROXY,"disable")
+			msg.post(PROXY, "final")
+			msg.post(PROXY, "unload")
+			msg.post(GM,"hand",COMBINATION[check_combination(self)])
+			ui.delete_all_card(self)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	ui.on_input(self, action_id, action)
+end

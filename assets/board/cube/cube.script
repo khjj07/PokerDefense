@@ -1,0 +1,92 @@
+local UI={ingame="/ingame/ingame"}
+
+
+local function calc_effect(self)
+	local result = {final_damage=0,boss_damage=0,delay=0,critical_damage_rate=0,ignore_armor=0,critical_rate=0,damage=0}
+	for i = 1, 6 do
+		local num=self.synergy_count[i]
+		if num>0 then
+			if self.synergy_count[i]>#self.synergy_effect[i] then
+				num=#self.synergy_effect[i]
+			end
+			local effect = self.synergy_effect[i][num]
+			if effect.final_damage then
+				result.final_damage=effect.final_damage
+			end
+			if effect.boss_damage then
+				result.boss_damage=effect.boss_damage
+			end
+			if effect.critical_damage_rate then
+				result.critical_damage_rate=effect.critical_damage_rate
+			end
+			if effect.ignore_armor then
+				result.ignore_armor=effect.ignore_armor
+			end
+			if effect.critical_rate then
+				result.critical_rate=effect.critical_rate
+			end
+		end
+	end
+	result.damage=self.upgrade
+	return result
+end
+
+function init(self)
+	self.unit=nil
+	self.upgrade=0
+	self.synergy=factory.create("#synergy",go.get_position(),nil,nil,vmath.vector3(3,3,1))
+	self.synergy_active=false
+	self.synergy_count={0,0,0,0,0,0}
+	self.synergy_effect={
+		{{final_damage=1.05},{final_damage=1.1},{final_damage=1.15},{final_damage=1.2}},
+		{{boss_damage=1.25},{boss_damage=1.5},{boss_damage=1.5},{boss_damage=2},{boss_damage=2},{boss_damage=2},{boss_damage=2},{boss_damage=4}},
+		{{critical_damage_rate=0.5},{critical_damage_rate=0.5},{critical_damage_rate=0.5},{critical_damage_rate=1.5},{critical_damage_rate=1.5},{critical_damage_rate=1.5},{critical_damage_rate=1.5},{critical_damage_rate=3}},
+		{{ignore_armor=0.25},{ignore_armor=0.25},{ignore_armor=0.25},{ignore_armor=0.5},{ignore_armor=0.5},{ignore_armor=0.5},{ignore_armor=0.5},{ignore_armor=1}},
+		{{delay=0.1},{delay=0.15},{delay=0.15},{delay=0.3},{delay=0.3},{delay=0.5}},
+		{{critical_rate=0.3}}
+	}
+	msg.post(self.synergy, "disable")
+end
+
+function update(self, dt)
+	if not self.synergy_active then
+		msg.post(self.synergy, "synergy_disable")
+	end
+	self.synergy_active=false
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id==hash("remove_unit") then 
+		self.unit=nil
+	end
+	if message_id==hash("add_synergy") then 
+		self.synergy_count[message.type]=self.synergy_count[message.type]+1 
+	end
+	if message_id==hash("remove_synergy") then 
+		self.synergy_count[message.type]=self.synergy_count[message.type]-1 
+	end
+	if message_id==hash("synergy_enable") then
+		self.synergy_active=true
+		msg.post(self.synergy, "synergy_enable")
+	end
+	if message_id==hash("apply_synergy") then
+		msg.post(message.unit, "apply_synergy",calc_effect(self))
+		self.unit=message.unit
+	end
+	if message_id==hash("upgrade") then
+		self.upgrade=self.upgrade+0.01
+		if self.unit then
+			msg.post(self.unit, "apply_synergy",calc_effect(self))
+		end
+	end
+	if message_id==hash("on_it") then
+		self.synergy_active=true
+		msg.post(self.synergy, "on_it",{merge=message.merge})
+		if message.merge == 0 then
+			local result = calc_effect(self)
+			result.count = self.synergy_count
+			msg.post(message.sender, "information",result)
+		end
+	end
+end
+

@@ -1,0 +1,23 @@
+function init(self)
+	sprite.set_constant("#sprite", "tint", vmath.vector4(1, 0, 0, 0.5))
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id==hash("on_it") then
+		if message.merge == 1 then
+			sprite.set_constant("#sprite", "tint", vmath.vector4(0, 0, 1, 0.5))
+		elseif message.merge == -1 then
+			sprite.set_constant("#sprite", "tint", vmath.vector4(1, 0, 0, 0.5))
+		else
+			sprite.set_constant("#sprite", "tint", vmath.vector4(0, 1, 0, 0.5))
+		end
+		msg.post(".", "enable")
+	end
+	if message_id==hash("synergy_enable") then
+		sprite.set_constant("#sprite", "tint", vmath.vector4(1, 1, 0, 0.5))
+		msg.post(".", "enable")
+	end
+	if message_id==hash("synergy_disable") then
+		msg.post(".", "disable")
+	end
+end

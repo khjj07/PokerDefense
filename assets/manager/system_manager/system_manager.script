@@ -1,0 +1,14 @@
+go.property("bgm", 50)
+go.property("sfx", 50)
+
+function on_message(self, message_id, message, sender)
+	if message_id==hash("get_sound") then
+		msg.post(sender, "get_sound",{bgm=self.bgm,sfx=self.sfx})
+	end
+	if message_id==hash("set_bgm") then
+		self.bgm = message.value
+	end
+	if message_id==hash("set_sfx") then
+		self.sfx = message.value
+	end
+end

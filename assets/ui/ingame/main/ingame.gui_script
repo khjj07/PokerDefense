@@ -1,0 +1,426 @@
+local ui=require"assets.ui.module.ui"
+local PROXY="main:/scene_proxy"
+local GM="/game_controller"
+local HAND="main:/hand_proxy"
+local DRAW_COST = 500
+local BOARD = "/board/board"
+
+local PARAM= {} 
+local PARAM1= {} 
+local PARAM2= {} 
+local OPERATOR1={}
+local OPERATOR2={}
+local POINT={}
+local UNIT_NAME={"폰","나이트","비숍","룩","퀸","킹"}
+local ELEMENT={wind="바람",ice="얼음",fire="화염",poison="독",lightning="번개",normal="노말"}
+
+function print_information(message)
+	local initial_damage=tostring(message.info.base.damage)
+	local initial_delay=tostring(message.info.base.delay)
+	local initial_ignore_armor=tostring(100*message.info.base.ignore_armor)
+	local initial_critical_damage_rate=tostring(100*message.info.base.critical_damage_rate)
+	local initial_critical_rate=tostring(100*message.info.base.critical_rate)
+	--tile
+	local tile_damage=tostring(initial_damage*message.info.tile.damage)
+	local pos=gui.get_position(PARAM1.damage)
+	pos.x=(string.len(initial_damage))*10
+	gui.set_position(PARAM1.damage, pos)
+	if tonumber(tile_damage)>0 then
+		tile_damage="+"..tile_damage
+	elseif tonumber(tile_damage)==0 then
+		tile_damage=""
+	else
+		tile_damage="-"..tile_damage
+	end
+	local tile_delay=tostring(initial_delay*message.info.tile.delay)
+	local pos=gui.get_position(PARAM1.delay)
+	pos.x=(string.len(initial_delay))*10
+	gui.set_position(PARAM1.delay, pos)
+	if tonumber(tile_delay)>0 then
+		tile_delay="-"..tile_delay
+	elseif tonumber(tile_delay)==0 then
+		tile_delay=""
+	else
+		tile_delay="+"..tile_delay
+	end
+	local tile_ignore_armor=tostring(100*message.info.tile.ignore_armor)
+	local pos=gui.get_position(PARAM1.ignore_armor)
+	pos.x=(string.len(initial_ignore_armor))*10
+	gui.set_position(PARAM1.ignore_armor, pos)
+	if tonumber(tile_ignore_armor)>0 then
+		tile_ignore_armor="+"..tile_ignore_armor
+	elseif tonumber(tile_ignore_armor)==0 then
+		tile_ignore_armor=""
+	else
+		tile_ignore_armor="-"..tile_ignore_armor
+	end
+	local tile_critical_damage_rate=tostring(100*message.info.tile.critical_damage_rate)
+	local pos=gui.get_position(PARAM1.critical_damage_rate)
+	pos.x=(string.len(initial_critical_damage_rate))*10
+	gui.set_position(PARAM1.critical_damage_rate, pos)
+	if tonumber(tile_critical_damage_rate)>0 then
+		tile_critical_damage_rate="+"..tile_critical_damage_rate
+	elseif tonumber(tile_critical_damage_rate)==0 then
+		tile_critical_damage_rate=""
+	else
+		tile_critical_damage_rate="-"..tile_critical_damage_rate
+	end
+	local tile_critical_rate=tostring(100*message.info.tile.critical_rate)
+	local pos=gui.get_position(PARAM1.critical_rate)
+	pos.x=(string.len(initial_critical_rate))*10
+	gui.set_position(PARAM1.critical_rate, pos)
+	if tonumber(tile_critical_rate)>0 then
+		tile_critical_rate="+"..tile_critical_rate
+	elseif tonumber(tile_critical_rate)==0 then
+		tile_critical_rate=""
+	else
+		tile_critical_rate="-"..tile_critical_rate
+	end
+	--item
+	local item_damage=tostring(initial_damage*message.info.tile.damage*message.info.item.damage)
+	local pos=gui.get_position(PARAM1.damage)
+	pos.x=pos.x+(string.len(tile_damage))*10
+	gui.set_position(PARAM2.damage, pos)
+	if tonumber(initial_damage)>0 then
+		item_damage="+"..item_damage
+	elseif tonumber(item_damage)==0 then
+		item_damage=""
+	else
+		item_damage="-"..item_damage
+	end
+	local item_delay=tostring(initial_delay*message.info.tile.delay*message.info.item.delay)
+	local pos=gui.get_position(PARAM1.delay)
+	pos.x=pos.x+(string.len(tile_delay))*10
+	gui.set_position(PARAM2.delay, pos)
+	if tonumber(item_delay)>0 then
+		item_delay="-"..item_delay
+	elseif tonumber(item_delay)==0 then
+		item_delay=""
+	else
+		item_delay="+"..item_delay
+	end
+	local item_ignore_armor=tostring(100*message.info.item.ignore_armor)
+	local pos=gui.get_position(PARAM1.ignore_armor)
+	pos.x=pos.x+(string.len(tile_ignore_armor))*10
+	gui.set_position(PARAM2.ignore_armor, pos)
+	if tonumber(item_ignore_armor)>0 then
+		item_ignore_armor="+"..item_ignore_armor
+	elseif tonumber(item_ignore_armor)==0 then
+		item_ignore_armor=""
+	else
+		item_ignore_armor="-"..item_ignore_armor
+	end
+	local item_critical_damage_rate=tostring(100*message.info.item.critical_damage_rate)
+
+	local pos=gui.get_position(PARAM1.critical_damage_rate)
+	pos.x=pos.x+(string.len(tile_critical_damage_rate))*10
+	gui.set_position(PARAM2.critical_damage_rate, pos)
+	if tonumber(item_critical_damage_rate)>0 then
+		item_critical_damage_rate="+"..item_critical_damage_rate
+	elseif tonumber(item_critical_damage_rate)==0 then
+		item_critical_damage_rate=""
+	else
+		item_critical_damage_rate="-"..item_critical_damage_rate
+	end
+	local item_critical_rate=tostring(100*message.info.item.critical_rate)
+	local pos=gui.get_position(PARAM1.critical_rate)
+	pos.x=pos.x+(string.len(tile_critical_rate))*10
+	gui.set_position(PARAM2.critical_rate, pos)
+	if tonumber(item_critical_rate)>0 then
+		item_critical_rate="+"..item_critical_rate
+	elseif tonumber(item_critical_rate)==0 then
+		item_critical_rate=""
+	else
+		item_critical_rate="-"..item_critical_rate
+	end
+	----------------------------
+	gui.set_text(gui.get_node("type"), UNIT_NAME[message.type])
+	gui.set_text(gui.get_node("element"), ELEMENT[message.element])
+	gui.play_flipbook(gui.get_node("image"), message.anim)
+	gui.set_text(PARAM.damage, initial_damage)
+	gui.set_text(PARAM.delay, initial_delay)
+	gui.set_text(PARAM.ignore_armor, initial_ignore_armor)
+	gui.set_text(PARAM.critical_damage_rate, initial_critical_damage_rate)
+	gui.set_text(PARAM.critical_rate, initial_critical_rate)
+	--point_positioning
+	local pos=gui.get_position(POINT.delay)
+	pos.x=(string.len(initial_delay)+string.len(tile_delay)+string.len(item_delay))*10
+	print(pos.x)
+	gui.set_position(POINT.delay,pos)
+	
+	local pos=gui.get_position(POINT.ignore_armor)
+	pos.x=(string.len(initial_ignore_armor)+string.len(tile_ignore_armor)+string.len(item_ignore_armor))*10
+	gui.set_position(POINT.ignore_armor,pos)
+	
+	local pos=gui.get_position(POINT.critical_damage_rate)
+	pos.x=(string.len(initial_critical_damage_rate)+string.len(tile_critical_damage_rate)+string.len(item_critical_damage_rate))*10
+	gui.set_position(POINT.critical_damage_rate,pos)
+	
+	local pos=gui.get_position(POINT.critical_rate)
+	pos.x=(string.len(initial_critical_rate)+string.len(tile_critical_rate)+string.len(item_critical_rate))*10
+	gui.set_position(POINT.critical_rate,pos)
+
+	
+	local parameter = {"damage","delay","ignore_armor","critical_damage_rate","critical_rate"}
+	for k,i in pairs(parameter) do
+		if message.info.tile[i] == 0 then
+			gui.set_enabled(PARAM1[i], false)
+		else
+			gui.set_enabled(PARAM1[i], true)
+		end
+		if message.info.item[i] == 0 then
+			gui.set_enabled(PARAM2[i], false)
+		else
+			gui.set_enabled(PARAM2[i], true)
+		end
+	end
+	--tile
+	
+	gui.set_text(PARAM1.damage, tile_damage)
+	gui.set_text(PARAM1.delay, tile_delay)
+	gui.set_text(PARAM1.ignore_armor, tile_ignore_armor)
+	gui.set_text(PARAM1.critical_damage_rate, tile_critical_damage_rate)
+	gui.set_text(PARAM1.critical_rate, tile_critical_rate)
+	
+	--tile
+
+	gui.set_text(PARAM2.damage, item_damage)
+	gui.set_text(PARAM2.delay, item_delay)
+	gui.set_text(PARAM2.ignore_armor, item_ignore_armor)
+	gui.set_text(PARAM2.critical_damage_rate, item_critical_damage_rate)
+	gui.set_text(PARAM2.critical_rate, item_critical_rate)
+	local tile_additional = ""
+	if  message.info.tile.final_damage > 0 then
+		tile_additional=tile_additional.."-최종 데미지 "..tostring((message.info.tile.final_damage-1)*100).."% 증가\n"
+	end
+	if  message.info.tile.boss_damage > 0 then
+		tile_additional=tile_additional.."-보스 데미지 "..tostring((message.info.tile.boss_damage-1)*100).."% 증가"
+	end
+	if tile_additional =="" then
+		gui.set_text(gui.get_node("tile_effects"), "-없음")
+	else
+		gui.set_text(gui.get_node("tile_effects"), tile_additional)
+	end
+end
+
+
+function generate_item(self,type)
+	local slot = nil 
+	for i=1,#self.slot do
+		if not self.slot_content[i] then
+			self.slot_content[i]=true
+			slot=self.slot[i].node
+			break
+		end
+	end
+	local node =gui.new_box_node(gui.get_position(slot), gui.get_size(slot))
+	ui.create_item(self, node, self.item_count, type,slot)
+	gui.set_texture(node, "item")
+	gui.play_flipbook(node, type)
+	self.item_count=self.item_count+1
+end
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	ui.init(self)
+	ui.create_button(self, gui.get_node("pause_btn"),1)
+	ui.create_button(self, gui.get_node("hand_btn"),2)
+	ui.create_button(self, gui.get_node("play_btn"), 3)
+	ui.create_button(self, gui.get_node("black_btn"), 4)
+	ui.create_button(self, gui.get_node("white_btn"), 5)
+	for i = 1, 5 do
+		ui.create_slot(self, gui.get_node("slot"..tostring(i)), i)
+	end
+	PARAM={
+		damage=gui.get_node("damage_input"),
+		delay=gui.get_node("delay_input"),
+		ignore_armor=gui.get_node("ignorearmor_input"),
+		critical_damage_rate=gui.get_node("criticaldamage_input"),
+		critical_rate=gui.get_node("criticalrate_input")
+	}
+	PARAM1={
+
+		damage=gui.get_node("damage_input1"),
+		delay=gui.get_node("delay_input1"),
+		ignore_armor=gui.get_node("ignorearmor_input1"),
+		critical_damage_rate=gui.get_node("criticaldamage_input1"),
+		critical_rate=gui.get_node("criticalrate_input1")
+	}
+	PARAM2={
+		damage=gui.get_node("damage_input2"),
+		delay=gui.get_node("delay_input2"),
+		ignore_armor=gui.get_node("ignorearmor_input2"),
+		critical_damage_rate=gui.get_node("criticaldamage_input2"),
+		critical_rate=gui.get_node("criticalrate_input2")
+	}
+	POINT={
+		delay=gui.get_node("point"),
+		ignore_armor=gui.get_node("point1"),
+		critical_damage_rate=gui.get_node("point2"),
+		critical_rate=gui.get_node("point3")
+	}
+	self.mode=0
+	self.coin=500
+	self.black_cost=10
+	self.black_upgrade=0
+	self.white_cost=10
+	self.white_upgrade=0
+	self.spawn_enable=true
+	self.item_count=1
+	self.slot_content={false,false,false,false,false}
+	self.info = true
+	self.pause = false
+	gui.set_text(gui.get_node("draw_cost"), "500")
+	msg.post(GM, "get_coin")
+end
+
+function update(self, dt)
+	if not self.info then
+		gui.cancel_animation(gui.get_node("information_area"), "position")
+		gui.animate(gui.get_node("information_area"), "position.y", -320, gui.EASING_INBOUNCE, 0.1)
+	end
+	self.target=nil
+	self.merge=0
+	self.info = false
+end
+
+function on_input(self, action_id, action)
+	ui.on_input(self, action_id, action)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id==hash("play_assignment") then
+		gui.set_text(gui.get_node("stage"), "Stage "..tostring(message.wave))
+	end
+	if message_id==hash("spawn_enable") then
+		self.spawn_enable=message.enable
+	end
+	if message_id==hash("wave_end") then
+		gui.play_flipbook(gui.get_node("play_icon"), "forward")
+		gui.set_color(gui.get_node("play_icon"), vmath.vector4(0,0,0,1))
+		gui.set_text(gui.get_node("stage"), "Stage "..tostring(message.wave))
+		msg.post(GM, "wave_end")
+		if self.mode == 1 then
+			self.mode=0 
+		elseif self.mode==2 then
+			self.mode=3 
+		end
+	end
+	if message_id==hash("get_coin")then
+		self.coin = message.coin
+		gui.set_text(gui.get_node("coin"), tostring(self.coin))
+	end
+	if message_id == hash("button_pressed") then
+		if message.id==1 then
+			self.pause=true
+			msg.post("option", "enable")
+			msg.post(PROXY, "set_time_step", {factor = 0, mode = 0})
+			msg.post("/touch", "disable")
+			msg.post(".", "release_input_focus")
+			gui.set_color(gui.get_node("timer"), vmath.vector4(1,0,0,0.5))
+		elseif message.id==3 then
+			local button = self.button[3]
+			if self.mode == 0 then
+				gui.set_color(gui.get_node("play_icon"), vmath.vector4(1,1,0,1))
+				msg.post(PROXY, "set_time_step", {factor = 1, mode = 0})
+				msg.post(GM, "play")
+				self.mode = 1
+			elseif self.mode == 1 then
+				msg.post(PROXY, "set_time_step", {factor = 2, mode = 0})
+				gui.play_flipbook(gui.get_node("play_icon"), "fastForward")
+				gui.set_color(gui.get_node("play_icon"), vmath.vector4(1,1,0,1))
+				self.mode = 2
+			elseif self.mode == 2 then
+				msg.post(PROXY, "set_time_step", {factor = 1, mode = 0})
+				gui.play_flipbook(gui.get_node("play_icon"), "forward")
+				gui.set_color(gui.get_node("play_icon"), vmath.vector4(1,1,0,1))
+				self.mode = 1
+			elseif self.mode==3 then
+				gui.play_flipbook(gui.get_node("play_icon"), "fastForward")
+				gui.set_color(gui.get_node("play_icon"), vmath.vector4(1,1,0,1))
+				msg.post(PROXY, "set_time_step", {factor = 2, mode = 0})
+				msg.post(GM, "play")
+				self.mode = 2
+			end
+		elseif message.id==4 and not self.pause then
+			if self.coin >= self.black_cost then
+				self.coin=self.coin-self.black_cost
+				msg.post(GM, "set_coin",{coin=self.coin})
+				msg.post(GM, "get_coin")
+				self.black_cost=self.black_cost+10
+				self.black_upgrade=self.black_upgrade+1
+				msg.post(BOARD, "upgrade_black")
+				gui.set_text(gui.get_node("b_upgrade"), "+"..tostring(self.black_upgrade))
+				gui.set_text(gui.get_node("b_cost"), tostring(self.black_cost))
+			end
+		elseif message.id==5 and not self.pause then
+			if self.coin >= self.white_cost then
+				self.coin=self.coin-self.white_cost
+				msg.post(GM, "set_coin",{coin=self.coin})
+				msg.post(GM, "get_coin")
+				self.white_cost=self.white_cost+10
+				self.white_upgrade=self.white_upgrade+1
+				msg.post(BOARD, "upgrade_white")
+				gui.set_text(gui.get_node("w_upgrade"), "+"..tostring(self.white_upgrade))
+				gui.set_text(gui.get_node("w_cost"), tostring(self.white_cost))
+			end
+		end
+	end
+	if message_id == hash("button_released") then
+		if message.id==2 then
+			self.pause=true
+			if self.coin >= DRAW_COST and self.spawn_enable then
+				self.coin=self.coin-DRAW_COST
+				msg.post("/touch", "disable")
+				msg.post(PROXY, "set_time_step", {factor = 0, mode = 0})
+				msg.post(HAND, "draw")
+				msg.post(GM, "set_coin",{coin=self.coin})
+				msg.post(GM, "get_coin")
+			end
+		end
+	end
+	if message_id == hash("resume") then
+		self.pause=false
+		msg.post("option", "disable")
+		msg.post("/touch#collisionobject", "enable")
+		msg.post(".", "acquire_input_focus")
+		if self.mode >0 then
+			msg.post(PROXY, "set_time_step", {factor = self.mode, mode = 0})
+		else
+			msg.post(PROXY, "set_time_step", {factor = 1, mode = 0})
+		end
+		gui.set_color(gui.get_node("timer"), vmath.vector4(1,0,0,1))
+	end
+	if message_id == hash("submit") then
+		self.pause=false
+		if self.mode >0 then
+			msg.post(PROXY, "set_time_step", {factor = self.mode, mode = 0})
+		else
+			msg.post(PROXY, "set_time_step", {factor = 1, mode = 0})
+		end
+		msg.post(".", "acquire_input_focus")
+		msg.post("/touch", "enable")
+		gui.set_color(gui.get_node("timer"), vmath.vector4(1,0,0,1))
+		gui.set_color(gui.get_node("coin"), vmath.vector4(1,1,1,1))
+		gui.set_color(gui.get_node("stage"), vmath.vector4(1,1,1,1))
+		gui.set_enabled(gui.get_node("coin_icon"), true)
+	end
+	if message_id==hash("item") then
+		for i = 1, #self.slot_content do
+			if not self.slot_content[i] then
+				generate_item(self,message.item)
+				break
+			end
+		end
+	end
+	if message_id==hash("information") then
+		print_information(message)
+		gui.cancel_animation(gui.get_node("information_area"), "position")
+		gui.animate(gui.get_node("information_area"), "position.y", 0, gui.EASING_INBOUNCE, 0.1)
+		self.info=true
+	end
+	if message_id==hash("timer") then
+		local format = message.m..":"..message.s
+		gui.set_text(gui.get_node("timer"), format)
+	end
+end

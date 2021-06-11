@@ -1,0 +1,22 @@
+[bootstrap]
+main_collection = /main/main.collectionc
+render = /rendercam/rendercam.renderc
+
+[script]
+shared_state = 1
+
+[display]
+width = 720
+height = 1280
+display_profiles = /scene/display/phone.display_profilesc
+
+[android]
+input_method = HiddenInputField
+
+[project]
+title = PokerDefense_v2
+dependencies = https://github.com/rgrams/rendercam/archive/v1.0.1.zip,https://github.com/dev-masih/defgraph/archive/master.zip,https://github.com/indiesoftby/defold-hyper-trails/archive/master.zip
+
+[sprite]
+max_count = 2048
+

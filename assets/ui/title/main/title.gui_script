@@ -1,0 +1,28 @@
+local ui=require"assets.ui.module.ui"
+local PROXY="main:/scene_proxy"
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	ui.init(self)
+	ui.create_button(self, gui.get_node("start_btn"),1)
+	ui.create_button(self, gui.get_node("option_btn"),2)
+	--ui.create_button(self, gui.get_node("shop_btn"))
+	--ui.create_button(self, gui.get_node("skin_btn"))
+end
+
+function on_input(self, action_id, action)
+	ui.on_input(self, action_id, action)
+end
+
+function on_message(self, message_id, message)
+	if message_id==hash("button_pressed") then
+		if message.id==2 then
+			msg.post("option", "enable")
+			msg.post(".", "release_input_focus")
+		end
+	end
+	if message_id==hash("button_released") then
+		if message.id==1 then
+			msg.post(PROXY, "change_scene",{next="#ingame"})
+		end
+	end
+end
