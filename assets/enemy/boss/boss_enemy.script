@@ -25,17 +25,16 @@ function init(self)
 end
 function update(self, dt)
 	local my_position = go.get_position()
+	my_position=my_position+vmath.normalize(self.destination-go.get_position())*self.speed*dt
 	my_position.z=my_position.y*-0.001+my_position.x*0.00000001
-	if vmath.length(self.destination-go.get_position()) <= self.speed*dt then
-		go.set_position(self.destination+vmath.vector3(0,0,my_position.z))
+	go.set_position(my_position)
+	if vmath.length(self.destination-go.get_position())<=self.speed*dt then
 		if self.index==#self.node then
 			self.index=1
 		else
 			self.index=self.index+1
 		end
 		self.destination=go.get_position(self.node[self.index])
-	else
-		go.set_position(my_position+vmath.normalize(self.destination-go.get_position())*self.speed*dt)
 	end
 end
 function on_message(self, message_id, message, sender)

@@ -453,7 +453,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Stage 0"
+  text: "\354\212\244\355\205\214\354\235\264\354\247\200 0"
   font: "f"
   id: "stage"
   xanchor: XANCHOR_NONE

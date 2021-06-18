@@ -1,6 +1,6 @@
 components {
   id: "hand_proxy"
-  component: "/scene/hand/hand_proxy.script"
+  component: "/scene/proxy/hand_proxy.script"
   position {
     x: 0.0
     y: 0.0

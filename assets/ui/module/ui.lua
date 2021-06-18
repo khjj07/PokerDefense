@@ -51,8 +51,9 @@ local BOARD = "/board/board"
 				item.clicked=true
 			end
 		elseif action.released then
+			msg.post("/touch", "item_droped")
 			if item.clicked then
-				if self.target and self.merge==1 then
+				if self.target then
 					for j = 1, #self.slot do
 						if self.slot[j].node == item.slot then
 							self.slot_content[j]=false
@@ -94,7 +95,7 @@ local BOARD = "/board/board"
 		else
 			if item.clicked then
 				local touch_x,touch_y = rendercam.screen_to_gui(action.screen_x, action.screen_y,rendercam.GUI_ADJUST_FIT)
-				msg.post(BOARD, "hover",{hover=self.cube,area={{false}},merge=self.merge})
+				msg.post("/touch", "item_picked")
 				item:move_coordinate(vmath.vector3(touch_x,touch_y,1))
 			end
 		end

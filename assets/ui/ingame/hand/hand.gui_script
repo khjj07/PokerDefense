@@ -1,8 +1,8 @@
 local ui=require"assets.ui.module.ui"
 local CARD_SHAPE={"Clubs","Diamonds","Hearts","Spades"}
 local CARD_NUMBER={"7","8","9","10","J","Q","K","A"}
-local COMBINATION = {["HighCard"]={coin=250},["OnePair"]={pawn=1},["TwoPair"]={pawn=2},["Triple"]={knight=1},["FullHouse"]={knight=2},["FourCard"]={queen=1},["FiveCard"]={king=1}
-,["Straight"]={bishop=1},["Mountain"]={bishop=1},["NumberStraight"]={bishop=1},["Flush"]={rook=1},["FiveFlush"]={king=1},["StraightFlush"]={king=1},["RoyalFlush"]={king=1},["NumberFlush"]={king=1}}
+local COMBINATION = {["Q탑"]={coin=250},["K탑"]={coin=250},["A탑"]={coin=250},["원페어"]={pawn=1},["투페어"]={pawn=2},["트리플"]={knight=1},["풀하우스"]={knight=2},["포카드"]={queen=1},["파이브카드"]={king=1}
+,["스트레이트"]={bishop=1},["마운틴"]={bishop=1},["스트레이트"]={bishop=1},["플러쉬"]={rook=1},["파이브플러쉬"]={king=1},["스트레이트플러쉬"]={king=1},["로얄스트레이트플러쉬"]={king=1},["플러쉬"]={king=1}}
 local GM ="scene:/game_controller"
 local UI={ingame="scene:/ingame/ingame#ingame"}
 local PROXY= "main:/hand_proxy"
@@ -26,6 +26,21 @@ local function card_to_number(card)
 	end
 end
 
+local function number_to_card(num)
+	if num==14 then
+		return "A"
+	elseif num==13 then
+		return "K"
+	elseif num==12 then
+		return "Q"
+	elseif num==11 then
+		return "J"
+	else
+		return tostring(num)
+	end
+end
+
+
 local function check_shape(self)
 	local standard = self.card[1].value[1]
 	for i = 2, #self.card do
@@ -37,30 +52,30 @@ local function check_shape(self)
 end
 local function check_number(self)
 	local count = {["7"]=0,["8"]=0,["9"]=0,["10"]=0,["J"]=0,["Q"]=0,["K"]=0,["A"]=0}
-	local result = "HighCard"
+	local result = "탑"
 	for i = 1, #self.card do
 		count[self.card[i].value[2]]=count[self.card[i].value[2]]+1
 	end
 	for k,v in pairs(count) do
 		if v == 5 then
-			return "FiveCard"
+			return "파이브카드"
 		elseif v==4 then
-			return "FourCard"
-		elseif v==3 and result == "OnePair" then
-			return "FullHouse"
-		elseif v==2 and result == "Triple" then
-			return "FullHouse"
-		elseif v==2 and result == "OnePair" then
-			return "TwoPair"
+			return "포카드"
+		elseif v==3 and result == "원페어" then
+			return "풀하우스"
+		elseif v==2 and result == "트리플" then
+			return "풀하우스"
+		elseif v==2 and result == "원페어" then
+			return "투페어"
 		elseif v==3 then
-			result = "Triple"
+			result = "트리플"
 		elseif v==2 then
-			result = "OnePair"
-		elseif result == "HighCard" then
-			result = "HighCard"
+			result = "원페어"
+		elseif result == "탑" then
+			result = "탑"
 		end
 	end
-	if result=="HighCard" then
+	if result=="탑" then
 		local tmp = {}
 		for i = 1, #self.card do
 			table.insert(tmp, card_to_number(self.card[i].value[2]))
@@ -71,34 +86,34 @@ local function check_number(self)
 		local standard=tmp[1]
 
 		if standard-1 ~=tmp[2] and standard-4 ~=tmp[2]  then
-			return "HighCard"
+			return number_to_card(tmp[1]).."탑"
 		elseif standard == 14 and standard-1 ==tmp[2]then
 			standard=tmp[2]
 			for i = 3, 5 do
 				if standard-1 ~=tmp[i] then
-					return "HighCard"
+					return number_to_card(tmp[1]).."탑"
 				end
 				standard=tmp[i]
 			end
-			return "Mountain"
+			return "마운틴"
 		elseif standard == 14 and standard-4 ==tmp[2]then
 			standard=tmp[2]
 			for i = 3, 5 do
 				if standard-1 ~=tmp[i] then
-					return "HighCard"
+					return number_to_card(tmp[1]).."탑"
 				end
 				standard=tmp[i]
 			end
-			return "NumberStraight"
+			return "스트레이트"
 		else
 			standard=tmp[2]
 			for i = 3, 5 do
 				if standard-1 ~=tmp[i] then
-					return "HighCard"
+					return number_to_card(tmp[1]).."탑"
 				end
 				standard=tmp[i]
 			end
-			return "Straight"
+			return "스트레이트"
 		end
 	end
 	return result
@@ -108,16 +123,14 @@ local function check_combination(self)
 	local flush = check_shape(self)
 	local num = check_number(self)
 	if flush then
-		if num == "FiveCard" then
-			return "FiveFlush"
-		elseif num == "Straight" then
-			return "StraightFlush"
-		elseif num == "Mountain" then
-			return "LoyalFlush"
-		elseif num == "NumberStraight" then
-			return "NumberFlush"
+		if num == "파이브카드" then
+			return "파이브플러쉬"
+		elseif num == "스트레이트" then
+			return "스트레이트플러쉬"
+		elseif num == "마운틴" then
+			return "로얄스트레이트플러쉬"
 		else
-			return "Flush"
+			return "플러쉬"
 		end
 	else
 		return num

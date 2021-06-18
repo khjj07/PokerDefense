@@ -77,7 +77,13 @@ function print_information(message)
 		tile_critical_rate="-"..tile_critical_rate
 	end
 	--item
-	local item_damage=tostring(initial_damage*message.info.tile.damage*message.info.item.damage)
+	local item_damage
+	if message.info.tile.damage == 0 then
+		item_damage = tostring(initial_damage*message.info.item.damage)
+	else
+		item_damage = tostring(initial_damage* message.info.tile.damage*message.info.item.damage)
+	end
+	print(message.info.item.damage)
 	local pos=gui.get_position(PARAM1.damage)
 	pos.x=pos.x+(string.len(tile_damage))*10
 	gui.set_position(PARAM2.damage, pos)
@@ -88,7 +94,12 @@ function print_information(message)
 	else
 		item_damage="-"..item_damage
 	end
-	local item_delay=tostring(initial_delay*message.info.tile.delay*message.info.item.delay)
+	local item_delay
+	if message.info.tile.delay == 0 then
+		item_delay = tostring(initial_delay*message.info.item.delay)
+	else
+		item_delay = tostring(initial_delay* message.info.tile.delay*message.info.item.delay)
+	end
 	local pos=gui.get_position(PARAM1.delay)
 	pos.x=pos.x+(string.len(tile_delay))*10
 	gui.set_position(PARAM2.delay, pos)
@@ -123,6 +134,7 @@ function print_information(message)
 		item_critical_damage_rate="-"..item_critical_damage_rate
 	end
 	local item_critical_rate=tostring(100*message.info.item.critical_rate)
+	
 	local pos=gui.get_position(PARAM1.critical_rate)
 	pos.x=pos.x+(string.len(tile_critical_rate))*10
 	gui.set_position(PARAM2.critical_rate, pos)
@@ -145,7 +157,6 @@ function print_information(message)
 	--point_positioning
 	local pos=gui.get_position(POINT.delay)
 	pos.x=(string.len(initial_delay)+string.len(tile_delay)+string.len(item_delay))*10
-	print(pos.x)
 	gui.set_position(POINT.delay,pos)
 	
 	local pos=gui.get_position(POINT.ignore_armor)
@@ -270,6 +281,7 @@ function init(self)
 	self.slot_content={false,false,false,false,false}
 	self.info = true
 	self.pause = false
+	self.target=nil
 	gui.set_text(gui.get_node("draw_cost"), "500")
 	msg.post(GM, "get_coin")
 end
@@ -279,8 +291,6 @@ function update(self, dt)
 		gui.cancel_animation(gui.get_node("information_area"), "position")
 		gui.animate(gui.get_node("information_area"), "position.y", -320, gui.EASING_INBOUNCE, 0.1)
 	end
-	self.target=nil
-	self.merge=0
 	self.info = false
 end
 
@@ -289,8 +299,11 @@ function on_input(self, action_id, action)
 end
 
 function on_message(self, message_id, message, sender)
+	if message_id==hash("target") then
+		self.target=message.target
+	end
 	if message_id==hash("play_assignment") then
-		gui.set_text(gui.get_node("stage"), "Stage "..tostring(message.wave))
+		gui.set_text(gui.get_node("stage"), "스테이지 "..tostring(message.wave))
 	end
 	if message_id==hash("spawn_enable") then
 		self.spawn_enable=message.enable
@@ -311,14 +324,14 @@ function on_message(self, message_id, message, sender)
 		gui.set_text(gui.get_node("coin"), tostring(self.coin))
 	end
 	if message_id == hash("button_pressed") then
-		if message.id==1 then
+		if message.id==1 and not self.pause then
 			self.pause=true
 			msg.post("option", "enable")
 			msg.post(PROXY, "set_time_step", {factor = 0, mode = 0})
 			msg.post("/touch", "disable")
 			msg.post(".", "release_input_focus")
 			gui.set_color(gui.get_node("timer"), vmath.vector4(1,0,0,0.5))
-		elseif message.id==3 then
+		elseif message.id==3 and not self.pause then
 			local button = self.button[3]
 			if self.mode == 0 then
 				gui.set_color(gui.get_node("play_icon"), vmath.vector4(1,1,0,1))
@@ -422,5 +435,9 @@ function on_message(self, message_id, message, sender)
 	if message_id==hash("timer") then
 		local format = message.m..":"..message.s
 		gui.set_text(gui.get_node("timer"), format)
+	end
+	if message_id==hash("lose") then
+		msg.post(".", "disable")
+		msg.post(".", "release_input_focus")
 	end
 end

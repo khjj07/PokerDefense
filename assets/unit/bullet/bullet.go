@@ -28,11 +28,6 @@ components {
     w: 1.0
   }
   properties {
-    id: "trail_tint_color"
-    value: "1.0, 0.0, 0.0, 0.5"
-    type: PROPERTY_TYPE_VECTOR4
-  }
-  properties {
     id: "shrink_tail_width"
     value: "true"
     type: PROPERTY_TYPE_BOOLEAN

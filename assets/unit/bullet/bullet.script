@@ -2,6 +2,7 @@ go.property("damage", 5)
 go.property("ignore_armor", 0)
 go.property("final_damage", 0)
 go.property("boss_damage", 0)
+go.property("color", vmath.vector4())
 function destroy(self)
 	go.delete()
 end
@@ -21,6 +22,7 @@ function init(self)
 	self.dir=vmath.vector3()
 	self.speed=1000
 	go.set_scale(vmath.vector3(0.5,0.5,1))
+	go.set("#trail_maker", "trail_tint_color", self.color)
 end
 
 function update(self, dt)

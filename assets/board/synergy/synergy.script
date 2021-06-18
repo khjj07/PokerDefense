@@ -6,6 +6,8 @@ function on_message(self, message_id, message, sender)
 	if message_id==hash("on_it") then
 		if message.merge == 1 then
 			sprite.set_constant("#sprite", "tint", vmath.vector4(0, 0, 1, 0.5))
+		elseif  message.merge == 2 then
+			sprite.set_constant("#sprite", "tint", vmath.vector4(0, 0, 1, 0.5))
 		elseif message.merge == -1 then
 			sprite.set_constant("#sprite", "tint", vmath.vector4(1, 0, 0, 0.5))
 		else

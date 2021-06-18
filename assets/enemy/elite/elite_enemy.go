@@ -82,6 +82,24 @@ embedded_components {
   }
 }
 embedded_components {
+  id: "damage"
+  type: "factory"
+  data: "prototype: \"/assets/enemy/damage/damage.go\"\n"
+  "load_dynamically: false\n"
+  ""
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+}
+embedded_components {
   id: "hp"
   type: "sprite"
   data: "tile_set: \"/assets/enemy/hp/hp.atlas\"\n"
@@ -92,7 +110,7 @@ embedded_components {
   position {
     x: -25.0
     y: 30.0
-    z: 1.0
+    z: 0.5
   }
   rotation {
     x: 0.0
@@ -112,25 +130,7 @@ embedded_components {
   position {
     x: -25.0
     y: 30.0
-    z: 0.9
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-}
-embedded_components {
-  id: "damage"
-  type: "factory"
-  data: "prototype: \"/assets/enemy/damage/damage.go\"\n"
-  "load_dynamically: false\n"
-  ""
-  position {
-    x: 0.0
-    y: 0.0
-    z: 0.0
+    z: 0.4
   }
   rotation {
     x: 0.0

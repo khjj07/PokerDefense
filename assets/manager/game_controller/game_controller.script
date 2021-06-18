@@ -4,14 +4,15 @@ local BOSS_SPAWNER="#boss"
 local UNIT_SPAWNER="#unit"
 local INITAIL_TIMER=60
 local GRID = 25
-UI={ingame="/ingame/ingame"}
+local UI={ingame="/ingame/ingame"}
+local GAMEOVER="main:/game_over_proxy"
 local TYPE={normal=NORMAL_SPAWNER,elite=ELITE_SPAWNER,boss=BOSS_SPAWNER}
 local ITEM={"dagger","greatSword","bow"}
 local ENEMY={pawn=1,knight=2,bishop=3,rook=4,queen=5,king=6}
 local UNIT={pawn=1,knight=2,bishop=3,rook=4,queen=5,king=6}
 local WAVE ={
-	{{TYPE.normal,ENEMY.pawn,20}},
-	{{TYPE.normal,ENEMY.pawn,40}},
+	{{TYPE.elite,ENEMY.pawn,20}},
+	{{TYPE.elite,ENEMY.pawn,40}},
 	{{TYPE.normal,ENEMY.pawn,60}},
 	{{TYPE.normal,ENEMY.pawn,80}},
 	{{TYPE.normal,ENEMY.pawn,100}},
@@ -49,7 +50,14 @@ local WAVE ={
 }
 
 go.property("spawn_point", msg.url("/path/spawn_point"))
-
+function lose(self)
+	msg.post(UI.ingame, "lose")
+	msg.post(GAMEOVER, "game_over",{stage=self.wave_flag-1})
+	self.game_state="lose"
+	for i=1,#self.unit do
+		msg.post(self.unit[i][hash("/unit")], "lose")
+	end
+end
 function get_minutes(time)
 	local result = math.floor(time/60)
 	return tostring(result)
@@ -133,6 +141,7 @@ function init(self)
 	self.cube={}
 	self.timer=INITAIL_TIMER
 	self.timer_handler=nil
+	self.game_state="continue"
 	for i = 1, GRID do
 		table.insert(self.cube, {node="/board/cube"..tostring(i),contain=false})
 	end
@@ -141,20 +150,22 @@ function init(self)
 end
 
 function update(self, dt)
-	if #self.unit>0 and #self.enemy>0 then
-		for i = 1, #self.unit do
-			msg.post(self.unit[i][hash("/unit")], "enemy_data",{first=self.enemy[1]})
+	if self.game_state=="continue" then
+		if #self.unit>0 and #self.enemy>0 then
+			for i = 1, #self.unit do
+				msg.post(self.unit[i][hash("/unit")], "enemy_data",{first=self.enemy[1]})
+			end
+		elseif #self.unit>0 then
+			for i = 1, #self.unit do
+				msg.post(self.unit[i][hash("/unit")], "enemy_data",{first=nil})
+			end
 		end
-	elseif #self.unit>0 then
-		for i = 1, #self.unit do
-			msg.post(self.unit[i][hash("/unit")], "enemy_data",{first=nil})
+		if #self.enemy<=0 and self.play and self.enemy_all_out then
+			self.play=false
+			self.enemy_all_out=false
+			self.enemy={}
+			msg.post(UI.ingame, "wave_end",{wave=self.wave_flag})
 		end
-	end
-	if #self.enemy<=0 and self.play and self.enemy_all_out then
-		self.play=false
-		self.enemy_all_out=false
-		self.enemy={}
-		msg.post(UI.ingame, "wave_end",{wave=self.wave_flag})
 	end
 end
 
@@ -230,6 +241,10 @@ function on_message(self, message_id, message, sender)
 		self.timer_handler=timer.delay(1, true, function()
 			self.timer=self.timer-1
 			msg.post(UI.ingame, "timer",{m=get_minutes(self.timer),s=get_seconds(self.timer)})
+			if self.timer == 0 then
+				timer.cancel(self.timer_handler)
+				lose(self)
+			end
 		end)
 	end
 	if message_id==hash("stop")then

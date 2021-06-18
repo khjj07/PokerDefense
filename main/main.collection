@@ -20,54 +20,6 @@ instances {
   }
 }
 instances {
-  id: "camera"
-  prototype: "/assets/camera/camera.go"
-  position {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  component_properties {
-    id: "camera"
-    properties {
-      id: "orthoScale"
-      value: "0.9"
-      type: PROPERTY_TYPE_NUMBER
-    }
-    properties {
-      id: "fixedAspectRatio"
-      value: "true"
-      type: PROPERTY_TYPE_BOOLEAN
-    }
-    properties {
-      id: "aspectRatio"
-      value: "720.0, 1280.0, 0.0"
-      type: PROPERTY_TYPE_VECTOR3
-    }
-    properties {
-      id: "useViewArea"
-      value: "false"
-      type: PROPERTY_TYPE_BOOLEAN
-    }
-    properties {
-      id: "viewArea"
-      value: "720.0, 1280.0, 0.0"
-      type: PROPERTY_TYPE_VECTOR3
-    }
-  }
-  scale3 {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-  }
-}
-instances {
   id: "system_manager"
   prototype: "/assets/manager/system_manager/system_manager.go"
   position {
@@ -89,7 +41,27 @@ instances {
 }
 instances {
   id: "hand_proxy"
-  prototype: "/scene/hand/hand_proxy.go"
+  prototype: "/scene/proxy/hand_proxy.go"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "game_over_proxy"
+  prototype: "/scene/proxy/game_over_proxy.go"
   position {
     x: 0.0
     y: 0.0

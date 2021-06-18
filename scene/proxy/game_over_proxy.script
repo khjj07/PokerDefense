@@ -1,0 +1,15 @@
+function init(self)
+	self.stage = 0
+end
+function on_message(self, message_id, message, sender)
+	if message_id == hash("proxy_loaded") then
+		msg.post(sender, "init")
+		msg.post(sender, "enable")
+		msg.post(sender, "acquire_input_focus")
+		msg.post("GameOver:/lose", "stage",{stage=self.stage})
+	end
+	if message_id==hash("game_over") then
+		msg.post("#game_over", "load")
+		self.stage = message.stage
+	end
+end

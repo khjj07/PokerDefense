@@ -1,6 +1,6 @@
 local TYPE={
 	{anim="dagger",effect = {delay=0.3}},
-	{anim="greatSword",effect = {attack=0.3}},
+	{anim="greatSword",effect = {damage=0.3}},
 	{anim="bow",effect = {critical_rate=0.3}}
 }
 go.property("type", 1)
@@ -9,6 +9,7 @@ go.property("parent", msg.url())
 function init(self)
 	self.touch=false
 	go.set_parent(go.get_id(),self.parent)
+	go.set_position(vmath.vector3(0,0,0.1))
 	msg.post("#sprite", "play_animation",{id=hash(TYPE[self.type].anim)})
 	msg.post(self.target, "equip",{effect=TYPE[self.type].effect})
 end

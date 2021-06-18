@@ -1,0 +1,33 @@
+
+local ui=require"assets.ui.module.ui"
+
+function on_message(self, message_id, message, sender)
+	if message_id==hash("stage") then
+		gui.set_text(gui.get_node("stage"), "스테이지"..tostring(message.stage))
+	end
+	if message_id == hash("button_released") then
+		if message.id==1 then
+			msg.post("main:/scene_proxy", "change_scene",{next="#ingame"})
+			msg.post("main:/game_over_proxy","disable")
+			msg.post("main:/game_over_proxy", "final")
+			msg.post("main:/game_over_proxy", "unload")
+		end
+		if message.id==2 then
+			msg.post("main:/scene_proxy", "change_scene",{next="#title"})
+			msg.post("main:/game_over_proxy","disable")
+			msg.post("main:/game_over_proxy", "final")
+			msg.post("main:/game_over_proxy", "unload")
+		end
+	end
+end
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	ui.init(self)
+	ui.create_button(self, gui.get_node("restart_btn"),1)
+	ui.create_button(self, gui.get_node("title_btn"),2)
+end
+
+function on_input(self, action_id, action)
+	ui.on_input(self, action_id, action)
+end

@@ -121,7 +121,21 @@ local function apply_all_effect(self)
 	critical_rate = critical_rate+self.item_effect.critical_rate
 	self.critical_rate = critical_rate
 end
-
+local function element_color(element)
+	if element=="wind"then
+		return vmath.vector4(0.5,1,1,1)
+	elseif element=="ice" then
+		return vmath.vector4(0.1,0.5,1,1)
+	elseif element=="fire" then
+		return vmath.vector4(1,0.2,0.2,1)
+	elseif element=="poison" then
+		return vmath.vector4(0.2,1,0.2,1)
+	elseif element=="lightning" then
+		return vmath.vector4(1,1,0,1)
+	else
+		return vmath.vector4(1,1,1,1)
+	end
+end
 local function element_assignment(self)
 	local num = math.random(0,100)
 	if num==1 then
@@ -155,6 +169,7 @@ local function element_assignment_merge(self)
 		self.element="lightning"
 	end
 	msg.post("#sprite", "play_animation",{id=hash(self.element..TYPE[self.type].anim)})
+	self.anim=self.element..TYPE[self.type].anim
 end
 
 
@@ -165,7 +180,7 @@ local function attack(self)
 	if num<=self.critical_rate then
 		dmg=dmg*self.critical_damage_rate
 	end
-	table.insert(self.bullet,factory.create(BULLET,go.get_position(),nil,{damage=dmg,ignore_armor=igam,final_damage=self.tile_effect.final_damage,boss_damage=self.tile_effect.boss_damage}))
+	table.insert(self.bullet,factory.create(BULLET,go.get_position(),nil,{damage=dmg,ignore_armor=igam,final_damage=self.tile_effect.final_damage,boss_damage=self.tile_effect.boss_damage,color=element_color(self.element)}))
 end
 function init(self)
 	particlefx.play("#smoke")
@@ -229,6 +244,9 @@ function update_item(self)
 end
 
 function on_message(self, message_id, message, sender)
+	if message_id==hash("lose") then
+		self.attack_target=nil
+	end
 	if message_id==hash("drop") then
 		if self.merge then
 			msg.post(self.merge, "merge",{type=self.type,rank=self.rank,item=self.item,element=self.element})
@@ -249,6 +267,12 @@ function on_message(self, message_id, message, sender)
 	end
 	if message_id==hash("hover") then
 		if self.cube_tmp then
+			print(message.item)
+			if message.item and #self.item>3 then
+				self.merge_enable=-1
+			elseif message.item then
+				self.merge_enable=2
+			end
 			msg.post(BOARD, "hover",{area=self.my_synergy_area,hover=self.cube_tmp,merge=self.merge_enable})
 		end
 	end
@@ -325,6 +349,7 @@ function on_message(self, message_id, message, sender)
 		else
 			self.merge_enable=-1
 		end
+		
 	end
 	if message_id==hash("update_properties") then
 		apply_all_effect(self)
@@ -373,7 +398,6 @@ function on_message(self, message_id, message, sender)
 		critical_damage_rate=self.item_effect.critical_damage_rate,
 		critical_rate=self.item_effect.critical_rate}
 		local information = {base=base,tile=tile,item=item}
-		print(self.element)
 		msg.post(UI.ingame, "information",{type=self.type,info=information,element=self.element,anim=self.anim})
 	end
 end
