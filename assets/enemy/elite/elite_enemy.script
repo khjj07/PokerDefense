@@ -1,20 +1,20 @@
 local TYPE={
-	{anim="enemy_pawn",hp=100, armor=0.05, coin=50,items={{"dagger",0.01},{"greatSword",0.9},{"bow",0.01}}},
-	{anim="enemy_knight",hp=500, armor=0.15, coin=50,items={{"dagger",0.01},{"greatSword",0.01},{"bow",0.01}}},
-	{anim="enemy_bishop",hp=1000, armor=0.2, coin=50,items={{"dagger",0.01},{"greatSword",0.01},{"bow",0.01}}},
-	{anim="enemy_rook",hp=1500, armor=0.2, coin=50,items={{"dagger",0.01},{"greatSword",0.01},{"bow",0.01}}},
-	{anim="enemy_queen",hp=3000, armor=0.25, coin=50,items={{"dagger",0.01},{"greatSword",0.01},{"bow",0.01}}},
-	{anim="enemy_king",hp=5000, armor=0.5, coin=50,items={{"dagger",0.01},{"greatSword",0.01},{"bow",0.01}}}
+	{anim="enemy_pawn",hp=100, armor=0.05, coin=25,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
+	{anim="enemy_knight",hp=500, armor=0.15, coin=25,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
+	{anim="enemy_bishop",hp=1000, armor=0.2, coin=25,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
+	{anim="enemy_rook",hp=1500, armor=0.2, coin=25,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
+	{anim="enemy_queen",hp=3000, armor=0.25, coin=25,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
+	{anim="enemy_king",hp=5000, armor=0.5, coin=25,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}}
 }
 local GM = "/game_controller"
 go.property("type", 1)
-
 function init(self)
+	math.randomseed(os.time())
 	self.node={go.get_id("path/node0"),go.get_id("path/node1"),go.get_id("path/node2"),go.get_id("path/node3"),go.get_id("path/node4")}
 	self.destination=go.get_position(self.node[1])
 	self.index=1
 	self.speed=300
-	
+	self.drop_rate=0.03
 	msg.post("#sprite", "play_animation",{id=hash(TYPE[self.type].anim)})
 	self.maxhp=TYPE[self.type].hp
 	self.hp=TYPE[self.type].hp
@@ -48,15 +48,20 @@ function on_message(self, message_id, message, sender)
 			dmg=dmg*message.final_damage
 		end
 		self.hp=self.hp-dmg
-		local position = vmath.vector3(go.get_position().x,go.get_position().y,0)
-		local damage = factory.create("#damage",position,nil,{damage=math.floor(dmg)})
+		local position = vmath.vector3(go.get_position().x,go.get_position().y,0.5)
+		local damage = factory.create("#damage",position,nil,{damage=math.floor(dmg),critical=message.critical,x=math.random(-7,7)*10})
 		sprite.set_constant("#hp", "tint", vmath.vector4(1, 1, 1, 1))
 		sprite.set_constant("#hpbar", "tint", vmath.vector4(1, 1, 1, 1))
 		if self.hp>0 then
 			go.set("#hp", "scale.x", self.hp/self.maxhp)
 		end
 		if self.hp<=0 then
-			msg.post(GM, "dead_check",{sender=go.get_id(),coin=self.coin,items=TYPE[self.type].items})
+			msg.post(GM, "dead_check",{sender=go.get_id(),coin=self.coin})
+			local drop = math.random(0,10000)/10000
+			if self.drop_rate>drop then
+				local item_box = factory.create("#item_box")
+				msg.post(item_box, "init",{items=TYPE[self.type].items})
+			end
 			msg.post("#body", "disable")
 		end
 	end

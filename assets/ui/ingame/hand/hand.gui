@@ -473,8 +473,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 5.0
-    y: 5.0
+    x: 2.5
+    y: 2.5
     z: 1.0
     w: 1.0
   }
@@ -492,7 +492,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "\354\271\264\353\223\234 \355\231\225\354\240\225"
+  text: "\354\271\264\353\223\234 \352\262\260\354\240\225"
   font: "f"
   id: "text"
   xanchor: XANCHOR_NONE
@@ -866,8 +866,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 4.0
-    y: 4.0
+    x: 2.0
+    y: 2.0
     z: 1.0
     w: 1.0
   }

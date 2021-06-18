@@ -1,7 +1,9 @@
 local TYPE={
-	{anim="dagger",effect = {delay=0.3}},
-	{anim="greatSword",effect = {damage=0.3}},
-	{anim="bow",effect = {critical_rate=0.3}}
+	{anim="AXES",effect = {damage=0.2}},
+	{anim="DAGGERS",effect = {critical_rate=0.15}},
+	{anim="MACES",effect = {ignore_armor=0.3}},
+	{anim="SPEARS",effect = {critical_damage_rate=0.7}},
+	{anim="SWORDS",effect = {damage=0.1,delay=0.1}}
 }
 go.property("type", 1)
 go.property("target", msg.url())
@@ -9,6 +11,7 @@ go.property("parent", msg.url())
 function init(self)
 	self.touch=false
 	go.set_parent(go.get_id(),self.parent)
+	go.set_scale(vmath.vector3(0.7,0.7,1))
 	go.set_position(vmath.vector3(0,0,0.1))
 	msg.post("#sprite", "play_animation",{id=hash(TYPE[self.type].anim)})
 	msg.post(self.target, "equip",{effect=TYPE[self.type].effect})

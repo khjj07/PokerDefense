@@ -19,10 +19,10 @@ function find_square_on_board(self,cube)
 		end
 	end
 end
-function find_area(self,cube,sender)
+function find_area(self,item_effect,cube,sender)
 	local x,y=find_square_on_board(self,cube)
 	local length=math.floor(#self.synergy_area/2)
-	msg.post(self.cube[x][y], "on_it",{merge=self.merge,sender=sender})
+	msg.post(self.cube[x][y], "on_it",{item_effect=item_effect,merge=self.merge,sender=sender})
 	for i = -length, length do
 		for j= -length, length do
 			if x+i>0 and x+i<=#self.cube and y+j>0 and y+j<=#self.cube then
@@ -69,7 +69,7 @@ function on_message(self, message_id, message, sender)
 		self.synergy_area=message.area
 		self.merge=message.merge
 		if message.hover then
-			find_area(self,message.hover,sender)
+			find_area(self,message.item_effect,message.hover,sender)
 		end
 	end
 	if message_id==hash("dispose_unit") then

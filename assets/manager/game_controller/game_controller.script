@@ -11,8 +11,8 @@ local ITEM={"dagger","greatSword","bow"}
 local ENEMY={pawn=1,knight=2,bishop=3,rook=4,queen=5,king=6}
 local UNIT={pawn=1,knight=2,bishop=3,rook=4,queen=5,king=6}
 local WAVE ={
-	{{TYPE.elite,ENEMY.pawn,20}},
-	{{TYPE.elite,ENEMY.pawn,40}},
+	{{TYPE.normal,ENEMY.pawn,20}},
+	{{TYPE.normal,ENEMY.pawn,40}},
 	{{TYPE.normal,ENEMY.pawn,60}},
 	{{TYPE.normal,ENEMY.pawn,80}},
 	{{TYPE.normal,ENEMY.pawn,100}},
@@ -48,7 +48,7 @@ local WAVE ={
 	{{TYPE.elite,ENEMY.rook,24}},
 	{{TYPE.boss,ENEMY.rook,1}}
 }
-
+go.property("round_coin",100)
 go.property("spawn_point", msg.url("/path/spawn_point"))
 function lose(self)
 	msg.post(UI.ingame, "lose")
@@ -95,7 +95,7 @@ local function generate_unit(self,type)
 		msg.post(UI.ingame, "spawn_enable",{enable=true})
 	end
 	local props = {}
-	props[hash("/unit")] = {type=type,cube= msg.url(self.cube[num].node)}
+	props[hash("/unit")] = {type=type,cube= msg.url(self.cube[num].node),element_type= math.random(0,100)}
 	return collectionfactory.create(UNIT_SPAWNER,go.get_position(self.cube[num].node)+vmath.vector3(0,0,0.1),nil,props)
 	
 end
@@ -116,15 +116,8 @@ local function spawn_enemy(self)
 	end)
 end
 local function item_random_draw(items)
-	local num=math.random(0,10000)/10000
-	local inc=0
-	for i = 1, #items do
-		inc=inc+items[i][2]
-		if num <= inc then
-			return items[i][1]
-		end
-	end
-	return nil
+	local num=math.random(1,#items)
+	return items[num]
 end
 
 function init(self)
@@ -171,7 +164,7 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id==hash("wave_end") then
-		self.coin=self.coin+500
+		self.coin=self.coin+self.round_coin
 		if self.timer_handler then
 			timer.cancel(self.timer_handler)
 		end
@@ -264,16 +257,18 @@ function on_message(self, message_id, message, sender)
 			msg.post(".", "all_out")
 		end
 	end
+	if message_id==hash("item_box_open") then
+		if message.items then
+			local item = item_random_draw(message.items)
+			if item then
+				print("item : "..item)
+				msg.post(UI.ingame, "item",{item=item})
+			end
+		end
+	end
 	if message_id==hash("dead_check") then
 		for i = 1, #self.enemy do
 			if message.sender==self.enemy[i] then
-				if message.items then
-					local item = item_random_draw(message.items)
-					if item then
-						print("item : "..item)
-						msg.post(UI.ingame, "item",{item=item})
-					end
-				end
 				self.coin=self.coin+message.coin
 				msg.post(UI.ingame, "get_coin",{coin=self.coin})
 				msg.post(self.enemy[i], "kill")

@@ -1,13 +1,21 @@
 images {
-  image: "/resource/weapons.png/dagger.png"
+  image: "/resource/weapons.png/AXES.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
-  image: "/resource/weapons.png/greatSword.png"
+  image: "/resource/weapons.png/DAGGERS.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
-  image: "/resource/weapons.png/bow.png"
+  image: "/resource/weapons.png/MACES.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/resource/weapons.png/SPEARS.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/resource/weapons.png/SWORDS.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 margin: 0

@@ -14,7 +14,10 @@ local TYPE={
 }
 
 local ITEM = {
-	dagger=1,greatSword=2,bow=3
+	AXES=1,DAGGERS=2,MACES=3,SPEARS=4,SWORDS=5
+}
+local ITEM_EFFECT = {
+	AXES={damage=0.2},DAGGERS={critical_rate=0.15},MACES={ignore_armor=0.3},SPEARS={critical_damage_rate=0.7},SWORDS={damage=0.1,delay=0.1}
 }
 
 local SYNERGY_AREA = {
@@ -71,7 +74,7 @@ local SYNERGY_AREA = {
 }
 go.property("type", 1)
 go.property("cube", msg.url())
-
+go.property("element_type", 10)
 local function update_slot(self)
 	msg.post("slot1_1", "disable")
 	msg.post("slot2_1", "disable")
@@ -136,8 +139,8 @@ local function element_color(element)
 		return vmath.vector4(1,1,1,1)
 	end
 end
-local function element_assignment(self)
-	local num = math.random(0,100)
+local function element_assignment(self,num)
+	print(num)
 	if num==1 then
 		self.element="wind"
 	elseif num==2 then
@@ -174,13 +177,15 @@ end
 
 
 local function attack(self)
+	local critical = false
 	local num = math.random(0,100) / 100
 	local dmg = self.damage
 	local igam = self.ignore_armor
 	if num<=self.critical_rate then
 		dmg=dmg*self.critical_damage_rate
+		critical=true
 	end
-	table.insert(self.bullet,factory.create(BULLET,go.get_position(),nil,{damage=dmg,ignore_armor=igam,final_damage=self.tile_effect.final_damage,boss_damage=self.tile_effect.boss_damage,color=element_color(self.element)}))
+	table.insert(self.bullet,factory.create(BULLET,go.get_position(),nil,{damage=dmg,ignore_armor=igam,final_damage=self.tile_effect.final_damage,boss_damage=self.tile_effect.boss_damage,color=element_color(self.element),critical=critical}))
 end
 function init(self)
 	particlefx.play("#smoke")
@@ -211,9 +216,8 @@ function init(self)
 	self.item={}
 	self.cube=self.cube.path
 	self.anim=hash("normal_")
-	element_assignment(self)
+	element_assignment(self,self.element_type)
 	msg.post(BOARD, "dispose_unit",{area=self.my_synergy_area,cube=self.cube,type=self.type})
-	
 	update_slot(self)
 	self.attack_routine=timer.delay(self.delay, true, function()
 		if self.attack_target then
@@ -239,7 +243,7 @@ end
 function update_item(self)
 	for i = 1, #self.item do
 		go.delete(self.item[i].node)
-		self.item[i].node=factory.create(ITEM_SPAWNER,vmath.vector3(0,0,0.1),nil,{type=ITEM[self.item[i].type],target=msg.url(),parent=msg.url("slot"..tostring(self.rank).."_"..tostring(i))},vmath.vector3(1,1,1))
+		self.item[i].node=factory.create(ITEM_SPAWNER,vmath.vector3(0,0,0.1),nil,{type=ITEM[self.item[i].type],target=msg.url(),parent=msg.url("slot"..tostring(self.rank).."_"..tostring(i))})
 	end
 end
 
@@ -268,12 +272,23 @@ function on_message(self, message_id, message, sender)
 	if message_id==hash("hover") then
 		if self.cube_tmp then
 			print(message.item)
-			if message.item and #self.item>3 then
+			if message.item and #self.item>=self.rank then
 				self.merge_enable=-1
 			elseif message.item then
 				self.merge_enable=2
 			end
-			msg.post(BOARD, "hover",{area=self.my_synergy_area,hover=self.cube_tmp,merge=self.merge_enable})
+			local pre_item_effect={damage=0,delay=0,ignore_armor=0,critical_damage_rate=0,critical_rate=0}
+			if message.item then
+				print(message.item)
+				for i=1,#PROPERTY do
+					if ITEM_EFFECT[message.item][PROPERTY[i]] then
+						pre_item_effect[PROPERTY[i]]=self.item_effect[PROPERTY[i]]+ITEM_EFFECT[message.item][PROPERTY[i]]
+					end
+				end
+			else
+				pre_item_effect=self.item_effect
+			end
+			msg.post(BOARD, "hover",{area=self.my_synergy_area,hover=self.cube_tmp,item_effect=pre_item_effect,merge=self.merge_enable})
 		end
 	end
 	if message_id==hash("collision_response") then
@@ -390,15 +405,10 @@ function on_message(self, message_id, message, sender)
 		ignore_armor=self.initial_ignore_armor,
 		critical_damage_rate=self.initial_critical_damage_rate,
 		critical_rate=self.initial_critical_rate}
-		local tile=message
-		local item={
-		damage=self.item_effect.damage,
-		delay=self.item_effect.delay,
-		ignore_armor=self.item_effect.ignore_armor,
-		critical_damage_rate=self.item_effect.critical_damage_rate,
-		critical_rate=self.item_effect.critical_rate}
-		local information = {base=base,tile=tile,item=item}
-		msg.post(UI.ingame, "information",{type=self.type,info=information,element=self.element,anim=self.anim})
+		local tile=message.tile
+		local item=message.item
+		local information ={tile=tile,item=item,base=base}
+		msg.post(UI.ingame, "information",{type=self.type,info=information,element=self.element,anim=self.anim,equiped_item=self.item})
 	end
 end
 

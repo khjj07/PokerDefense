@@ -82,8 +82,9 @@ function on_message(self, message_id, message, sender)
 	if message_id==hash("on_it") then
 		self.synergy_active=true
 		msg.post(self.synergy, "on_it",{merge=message.merge})
+		msg.post(UI.ingame, "item_enable",{merge=message.merge})
 		if message.merge == 0 or message.merge == 2 then
-			local result = calc_effect(self)
+			local result ={tile=calc_effect(self),item=message.item_effect}
 			result.count = self.synergy_count
 			msg.post(message.sender, "information",result)
 		end

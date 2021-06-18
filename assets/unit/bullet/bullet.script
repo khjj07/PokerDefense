@@ -2,12 +2,13 @@ go.property("damage", 5)
 go.property("ignore_armor", 0)
 go.property("final_damage", 0)
 go.property("boss_damage", 0)
+go.property("critical", false)
 go.property("color", vmath.vector4())
 function destroy(self)
 	go.delete()
 end
 function hit(self,enemy)
-	msg.post(enemy, "hit",{damage=self.damage,ignore=self.ignore_armor,final_damage=self.final_damage,boss_damage=self.boss_damage})
+	msg.post(enemy, "hit",{damage=self.damage,ignore=self.ignore_armor,final_damage=self.final_damage,boss_damage=self.boss_damage,critical=self.critical})
 	if self.unit then
 		msg.post(self.unit, "bullet_delete",{sender=go.get_id()})
 	end

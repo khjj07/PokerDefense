@@ -1,0 +1,18 @@
+local GM="/game_controller"
+function init(self)
+	self.items=nil
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id==hash("init") then
+		self.items = message.items
+	end
+	if message_id==hash("open") then
+		particlefx.play("#open_effect")
+		msg.post(GM, "item_box_open",{items=self.items})
+		msg.post("#sprite", "play_animation",{id=hash("item_play")})
+	end
+	if message_id==hash("animation_done") then
+		go.delete()
+	end
+end

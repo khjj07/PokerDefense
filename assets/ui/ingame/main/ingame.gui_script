@@ -23,7 +23,16 @@ function print_information(message)
 	--tile
 	local tile_damage=tostring(initial_damage*message.info.tile.damage)
 	local pos=gui.get_position(PARAM1.damage)
-	pos.x=(string.len(initial_damage))*10
+	local equiped = message.equiped_item
+	for i=1,3 do
+		gui.set_enabled(gui.get_node("equiped_item"..tostring(i)),false)
+	end
+	for i=1,#equiped do
+		gui.set_enabled(gui.get_node("equiped_item"..tostring(i)),true)
+		gui.set_texture(gui.get_node("equiped_item"..tostring(i)), "item")
+		gui.play_flipbook(gui.get_node("equiped_item"..tostring(i)), equiped[i].type)
+	end
+	pos.x=(string.len(initial_damage))*20
 	gui.set_position(PARAM1.damage, pos)
 	if tonumber(tile_damage)>0 then
 		tile_damage="+"..tile_damage
@@ -34,7 +43,7 @@ function print_information(message)
 	end
 	local tile_delay=tostring(initial_delay*message.info.tile.delay)
 	local pos=gui.get_position(PARAM1.delay)
-	pos.x=(string.len(initial_delay))*10
+	pos.x=(string.len(initial_delay))*20
 	gui.set_position(PARAM1.delay, pos)
 	if tonumber(tile_delay)>0 then
 		tile_delay="-"..tile_delay
@@ -45,7 +54,7 @@ function print_information(message)
 	end
 	local tile_ignore_armor=tostring(100*message.info.tile.ignore_armor)
 	local pos=gui.get_position(PARAM1.ignore_armor)
-	pos.x=(string.len(initial_ignore_armor))*10
+	pos.x=(string.len(initial_ignore_armor))*20
 	gui.set_position(PARAM1.ignore_armor, pos)
 	if tonumber(tile_ignore_armor)>0 then
 		tile_ignore_armor="+"..tile_ignore_armor
@@ -56,7 +65,7 @@ function print_information(message)
 	end
 	local tile_critical_damage_rate=tostring(100*message.info.tile.critical_damage_rate)
 	local pos=gui.get_position(PARAM1.critical_damage_rate)
-	pos.x=(string.len(initial_critical_damage_rate))*10
+	pos.x=(string.len(initial_critical_damage_rate))*20
 	gui.set_position(PARAM1.critical_damage_rate, pos)
 	if tonumber(tile_critical_damage_rate)>0 then
 		tile_critical_damage_rate="+"..tile_critical_damage_rate
@@ -67,7 +76,7 @@ function print_information(message)
 	end
 	local tile_critical_rate=tostring(100*message.info.tile.critical_rate)
 	local pos=gui.get_position(PARAM1.critical_rate)
-	pos.x=(string.len(initial_critical_rate))*10
+	pos.x=(string.len(initial_critical_rate))*20
 	gui.set_position(PARAM1.critical_rate, pos)
 	if tonumber(tile_critical_rate)>0 then
 		tile_critical_rate="+"..tile_critical_rate
@@ -83,9 +92,8 @@ function print_information(message)
 	else
 		item_damage = tostring(initial_damage* message.info.tile.damage*message.info.item.damage)
 	end
-	print(message.info.item.damage)
 	local pos=gui.get_position(PARAM1.damage)
-	pos.x=pos.x+(string.len(tile_damage))*10
+	pos.x=pos.x+(string.len(tile_damage))*20
 	gui.set_position(PARAM2.damage, pos)
 	if tonumber(initial_damage)>0 then
 		item_damage="+"..item_damage
@@ -101,7 +109,7 @@ function print_information(message)
 		item_delay = tostring(initial_delay* message.info.tile.delay*message.info.item.delay)
 	end
 	local pos=gui.get_position(PARAM1.delay)
-	pos.x=pos.x+(string.len(tile_delay))*10
+	pos.x=pos.x+(string.len(tile_delay))*20
 	gui.set_position(PARAM2.delay, pos)
 	if tonumber(item_delay)>0 then
 		item_delay="-"..item_delay
@@ -112,7 +120,7 @@ function print_information(message)
 	end
 	local item_ignore_armor=tostring(100*message.info.item.ignore_armor)
 	local pos=gui.get_position(PARAM1.ignore_armor)
-	pos.x=pos.x+(string.len(tile_ignore_armor))*10
+	pos.x=pos.x+(string.len(tile_ignore_armor))*20
 	gui.set_position(PARAM2.ignore_armor, pos)
 	if tonumber(item_ignore_armor)>0 then
 		item_ignore_armor="+"..item_ignore_armor
@@ -124,7 +132,7 @@ function print_information(message)
 	local item_critical_damage_rate=tostring(100*message.info.item.critical_damage_rate)
 
 	local pos=gui.get_position(PARAM1.critical_damage_rate)
-	pos.x=pos.x+(string.len(tile_critical_damage_rate))*10
+	pos.x=pos.x+(string.len(tile_critical_damage_rate))*20
 	gui.set_position(PARAM2.critical_damage_rate, pos)
 	if tonumber(item_critical_damage_rate)>0 then
 		item_critical_damage_rate="+"..item_critical_damage_rate
@@ -136,7 +144,7 @@ function print_information(message)
 	local item_critical_rate=tostring(100*message.info.item.critical_rate)
 	
 	local pos=gui.get_position(PARAM1.critical_rate)
-	pos.x=pos.x+(string.len(tile_critical_rate))*10
+	pos.x=pos.x+(string.len(tile_critical_rate))*20
 	gui.set_position(PARAM2.critical_rate, pos)
 	if tonumber(item_critical_rate)>0 then
 		item_critical_rate="+"..item_critical_rate
@@ -156,19 +164,19 @@ function print_information(message)
 	gui.set_text(PARAM.critical_rate, initial_critical_rate)
 	--point_positioning
 	local pos=gui.get_position(POINT.delay)
-	pos.x=(string.len(initial_delay)+string.len(tile_delay)+string.len(item_delay))*10
+	pos.x=(string.len(initial_delay)+string.len(tile_delay)+string.len(item_delay))*20
 	gui.set_position(POINT.delay,pos)
 	
 	local pos=gui.get_position(POINT.ignore_armor)
-	pos.x=(string.len(initial_ignore_armor)+string.len(tile_ignore_armor)+string.len(item_ignore_armor))*10
+	pos.x=(string.len(initial_ignore_armor)+string.len(tile_ignore_armor)+string.len(item_ignore_armor))*20
 	gui.set_position(POINT.ignore_armor,pos)
 	
 	local pos=gui.get_position(POINT.critical_damage_rate)
-	pos.x=(string.len(initial_critical_damage_rate)+string.len(tile_critical_damage_rate)+string.len(item_critical_damage_rate))*10
+	pos.x=(string.len(initial_critical_damage_rate)+string.len(tile_critical_damage_rate)+string.len(item_critical_damage_rate))*20
 	gui.set_position(POINT.critical_damage_rate,pos)
 	
 	local pos=gui.get_position(POINT.critical_rate)
-	pos.x=(string.len(initial_critical_rate)+string.len(tile_critical_rate)+string.len(item_critical_rate))*10
+	pos.x=(string.len(initial_critical_rate)+string.len(tile_critical_rate)+string.len(item_critical_rate))*20
 	gui.set_position(POINT.critical_rate,pos)
 
 	
@@ -282,6 +290,7 @@ function init(self)
 	self.info = true
 	self.pause = false
 	self.target=nil
+	self.merge=nil
 	gui.set_text(gui.get_node("draw_cost"), "500")
 	msg.post(GM, "get_coin")
 end
@@ -381,8 +390,8 @@ function on_message(self, message_id, message, sender)
 	end
 	if message_id == hash("button_released") then
 		if message.id==2 then
-			self.pause=true
 			if self.coin >= DRAW_COST and self.spawn_enable then
+				self.pause=true
 				self.coin=self.coin-DRAW_COST
 				msg.post("/touch", "disable")
 				msg.post(PROXY, "set_time_step", {factor = 0, mode = 0})
@@ -431,6 +440,9 @@ function on_message(self, message_id, message, sender)
 		gui.cancel_animation(gui.get_node("information_area"), "position")
 		gui.animate(gui.get_node("information_area"), "position.y", 0, gui.EASING_INBOUNCE, 0.1)
 		self.info=true
+	end
+	if message_id==hash("item_enable") then
+		self.merge=message.merge
 	end
 	if message_id==hash("timer") then
 		local format = message.m..":"..message.s
