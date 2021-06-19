@@ -9,43 +9,57 @@ function init(self)
 	self.item_picked=false
 end
 function update(self, dt)
-	if self.touch and self.unit then
+	print(self.box)
+	if self.touch and self.unit and not self.item_picked then
 		go.set_position(go.get_position()+vmath.vector3(0,0,0.5),self.unit)
 	end
+	if self.touch and self.box then
+		msg.post(self.box, "open")
+		self.box=nil
+	end
+	if not self.touch then
+		self.unit=nil
+		go.set_position(vmath.vector3(-320,-640,0))
+	end
+	self.touch=false
 end
 
 function on_input(self, action_id, action)
-	if not action_id then
-		local pos = rendercam.screen_to_world_2d(action.screen_x, action.screen_y)
-		go.cancel_animations(".", "position")
-		go.set_position(pos)
-	end
+	
 	if action_id==hash("touch") then
-		if action.pressed and self.unit then
-			self.touch=true
-			msg.post(self.unit, "pick")
-		elseif action.released and self.unit and self.touch then
-			msg.post(self.unit, "drop")
-			self.touch=false
-		elseif self.unit then
+		local pos = rendercam.screen_to_world_2d(action.screen_x, action.screen_y)
+		self.touch=true
+		if self.unit and action.pressed and vmath.length(go.get_position()-pos)>50 then
+			self.unit=nil
+		elseif action.released then
+			if self.unit and vmath.length(go.get_position()-pos)<50 then
+				msg.post(self.unit, "drop")
+				self.unit=nil
+			end
+		elseif self.touch and self.unit and vmath.length(go.get_position()-pos)<50 then
 			msg.post(self.unit, "hover",{item = self.item_picked})
 		end
-		if action.pressed and self.box then
-			msg.post(self.box, "open")
-			self.box=nil
-		end
+		
+		go.cancel_animations(".", "position")
+		go.set_position(pos)
 	end
 end
 function on_message(self, message_id, message, sender)
 	if message_id==hash("trigger_response") then
 		if message.other_group==hash("unit") then
 			if not self.unit and message.enter then
-				self.unit = message.other_id
+				if not self.touch then
+					self.unit = message.other_id
+					msg.post(self.unit, "pick")
+				end
 			elseif not message.enter and self.unit==message.other_id then
 				self.unit = nil
 			end
 			msg.post(UI.ingame, "target",{target=self.unit})
-		elseif message.other_group==hash("box") then
+		end
+	end
+	if message_id==hash("trigger_response") then
+		if message.other_group==hash("box") then
 			if message.enter then
 				self.box=message.other_id
 			else
@@ -54,9 +68,9 @@ function on_message(self, message_id, message, sender)
 		end
 	end
 	if message_id==hash("merge") then
-		self.unit=nil
 		msg.post(UI.ingame, "target",{target=self.unit})
 	end
+
 	if message_id==hash("item_picked") then
 		self.item_picked=message.item
 	end

@@ -13,6 +13,7 @@ function on_message(self, message_id, message, sender)
 		msg.post("#sprite", "play_animation",{id=hash("item_play")})
 	end
 	if message_id==hash("animation_done") then
+		sound.play("main:/system_manager#item", {delay = 0, gain = 0.5, pan = -1.0, speed = 1.25})
 		go.delete()
 	end
 end

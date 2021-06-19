@@ -232,7 +232,7 @@ function generate_item(self,type)
 			break
 		end
 	end
-	local node =gui.new_box_node(gui.get_position(slot), gui.get_size(slot))
+	local node =gui.new_box_node(gui.get_position(slot), gui.get_size(slot)*0.9)
 	ui.create_item(self, node, self.item_count, type,slot)
 	gui.set_texture(node, "item")
 	gui.play_flipbook(node, type)
@@ -298,7 +298,7 @@ end
 function update(self, dt)
 	if not self.info then
 		gui.cancel_animation(gui.get_node("information_area"), "position")
-		gui.animate(gui.get_node("information_area"), "position.y", -320, gui.EASING_INBOUNCE, 0.1)
+		gui.animate(gui.get_node("information_area"), "position.y", -500, gui.EASING_INBOUNCE, 0.1)
 	end
 	self.info = false
 end
@@ -320,7 +320,7 @@ function on_message(self, message_id, message, sender)
 	if message_id==hash("wave_end") then
 		gui.play_flipbook(gui.get_node("play_icon"), "forward")
 		gui.set_color(gui.get_node("play_icon"), vmath.vector4(0,0,0,1))
-		gui.set_text(gui.get_node("stage"), "Stage "..tostring(message.wave))
+		gui.set_text(gui.get_node("stage"), "스테이지 "..tostring(message.wave))
 		msg.post(GM, "wave_end")
 		if self.mode == 1 then
 			self.mode=0 
@@ -423,8 +423,6 @@ function on_message(self, message_id, message, sender)
 		msg.post(".", "acquire_input_focus")
 		msg.post("/touch", "enable")
 		gui.set_color(gui.get_node("timer"), vmath.vector4(1,0,0,1))
-		gui.set_color(gui.get_node("coin"), vmath.vector4(1,1,1,1))
-		gui.set_color(gui.get_node("stage"), vmath.vector4(1,1,1,1))
 		gui.set_enabled(gui.get_node("coin_icon"), true)
 	end
 	if message_id==hash("item") then
@@ -438,7 +436,7 @@ function on_message(self, message_id, message, sender)
 	if message_id==hash("information") then
 		print_information(message)
 		gui.cancel_animation(gui.get_node("information_area"), "position")
-		gui.animate(gui.get_node("information_area"), "position.y", 0, gui.EASING_INBOUNCE, 0.1)
+		gui.animate(gui.get_node("information_area"), "position.y", 350, gui.EASING_INBOUNCE, 0.1)
 		self.info=true
 	end
 	if message_id==hash("item_enable") then

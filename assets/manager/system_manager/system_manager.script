@@ -10,5 +10,8 @@ function on_message(self, message_id, message, sender)
 	end
 	if message_id==hash("set_sfx") then
 		self.sfx = message.value
+		sound.set_group_gain(hash("sfx"), self.sfx/100)
 	end
+	
+
 end

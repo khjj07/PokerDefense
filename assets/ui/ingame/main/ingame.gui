@@ -1245,7 +1245,7 @@ nodes {
 nodes {
   position {
     x: 0.0
-    y: -320.0
+    y: -700.0
     z: 0.0
     w: 1.0
   }
@@ -1263,7 +1263,7 @@ nodes {
   }
   size {
     x: 720.0
-    y: 320.0
+    y: 500.0
     z: 0.0
     w: 1.0
   }
@@ -1279,7 +1279,7 @@ nodes {
   id: "information_area"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
-  pivot: PIVOT_SW
+  pivot: PIVOT_NW
   adjust_mode: ADJUST_MODE_FIT
   layer: "layer1"
   inherit_alpha: true
@@ -1299,7 +1299,7 @@ nodes {
 nodes {
   position {
     x: 30.0
-    y: 170.0
+    y: -150.0
     z: 0.0
     w: 1.0
   }
@@ -1551,7 +1551,7 @@ nodes {
 nodes {
   position {
     x: 30.0
-    y: 110.0
+    y: -210.0
     z: 0.0
     w: 1.0
   }
@@ -1866,7 +1866,7 @@ nodes {
 nodes {
   position {
     x: 30.0
-    y: 50.0
+    y: -270.0
     z: 0.0
     w: 1.0
   }
@@ -2181,7 +2181,7 @@ nodes {
 nodes {
   position {
     x: 260.0
-    y: 170.0
+    y: -150.0
     z: 0.0
     w: 1.0
   }
@@ -2496,7 +2496,7 @@ nodes {
 nodes {
   position {
     x: 260.0
-    y: 110.0
+    y: -210.0
     z: 0.0
     w: 1.0
   }
@@ -2811,7 +2811,7 @@ nodes {
 nodes {
   position {
     x: 140.0
-    y: 265.0
+    y: -55.0
     z: 0.0
     w: 1.0
   }
@@ -2937,7 +2937,7 @@ nodes {
 nodes {
   position {
     x: 480.0
-    y: 120.0
+    y: -200.0
     z: 0.0
     w: 1.0
   }
@@ -3063,7 +3063,7 @@ nodes {
 nodes {
   position {
     x: 80.0
-    y: 260.0
+    y: -60.0
     z: 0.0
     w: 1.0
   }
@@ -3118,7 +3118,7 @@ nodes {
 nodes {
   position {
     x: 614.0
-    y: 277.0
+    y: -43.0
     z: 0.0
     w: 1.0
   }
@@ -3350,7 +3350,7 @@ nodes {
 nodes {
   position {
     x: 480.0
-    y: 220.0
+    y: -100.0
     z: 0.0
     w: 1.0
   }
@@ -3476,7 +3476,7 @@ nodes {
 nodes {
   position {
     x: 300.0
-    y: 280.0
+    y: -40.0
     z: 0.0
     w: 1.0
   }

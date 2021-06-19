@@ -189,6 +189,7 @@ local function attack(self)
 end
 function init(self)
 	particlefx.play("#smoke")
+	sound.play("#arrangement", {delay = 0, gain = 0.5, pan = -1.0, speed = 1.25})
 	msg.post(".", "release_input_focus")
 	math.randomseed(os.time())
 	self.rank=1
@@ -262,6 +263,7 @@ function on_message(self, message_id, message, sender)
 			go.set_position(go.get_position(self.cube)+vmath.vector3(0,0,0.5))
 			msg.post(GM, "change_cube",{cube=self.cube,contain=true})
 			msg.post(BOARD, "dispose_unit",{area=self.my_synergy_area,cube=self.cube,type=self.type})
+			sound.play("main:/system_manager#arrangement", {delay = 0, gain = 0.5, pan = -1.0, speed = 1.25})
 			particlefx.play("#smoke")
 		end
 	end
@@ -391,6 +393,7 @@ function on_message(self, message_id, message, sender)
 		table.insert(self.item, {node=factory.create(ITEM_SPAWNER,vmath.vector3(0,0,0.1),nil,{type=ITEM[message.item],target=msg.url(),parent=msg.url("slot"..tostring(self.rank).."_"..tostring(#self.item+1))},vmath.vector3(1,1,1)),type=message.item})
 	end
 	if message_id==hash("equip") then
+		sound.play("main:/system_manager#equip", {delay = 0, gain = 0.5, pan = -1.0, speed = 1.25})
 		for i=1,#PROPERTY do
 			if message.effect[PROPERTY[i]] then
 				self.item_effect[PROPERTY[i]]=self.item_effect[PROPERTY[i]]+message.effect[PROPERTY[i]]

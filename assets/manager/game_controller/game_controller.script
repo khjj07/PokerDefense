@@ -12,7 +12,7 @@ local ENEMY={pawn=1,knight=2,bishop=3,rook=4,queen=5,king=6}
 local UNIT={pawn=1,knight=2,bishop=3,rook=4,queen=5,king=6}
 local WAVE ={
 	{{TYPE.normal,ENEMY.pawn,20}},
-	{{TYPE.normal,ENEMY.pawn,40}},
+	{{TYPE.normal,ENEMY.pawn,30}},
 	{{TYPE.normal,ENEMY.pawn,60}},
 	{{TYPE.normal,ENEMY.pawn,80}},
 	{{TYPE.normal,ENEMY.pawn,100}},

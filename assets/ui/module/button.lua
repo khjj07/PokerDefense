@@ -13,6 +13,7 @@ function B.create(button,id)
 	function new_button:pressed()
 		if new_button.show then
 			msg.post(".", "button_pressed", {id=id})
+			sound.play("main:/system_manager#button", {delay = 0, gain = 0.5, pan = -1.0, speed = 1.25})
 		end
 	end
 	function new_button:released()

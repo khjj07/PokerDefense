@@ -11,6 +11,7 @@ function init(self)
 	ui.create_button(self, gui.get_node("SFX_icon"),2)
 	ui.create_button(self, gui.get_node("resume_btn"),3)
 	ui.create_button(self, gui.get_node("exit_btn"),4)
+	ui.create_button(self, gui.get_node("restart_btn"),5)
 	msg.post(SM, "get_sound")
 end
 
@@ -72,6 +73,9 @@ end
 		end
 		if message.id == 4 then
 			msg.post(PROXY, "change_scene",{next="#title"})
+		end
+		if message.id == 5 then
+			msg.post(PROXY, "change_scene",{next="#ingame"})
 		end
 	end
 end

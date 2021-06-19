@@ -8,6 +8,7 @@ function destroy(self)
 	go.delete()
 end
 function hit(self,enemy)
+	sound.play("main:/system_manager#hit", {delay = 0, gain = 0.5, pan = -1.0, speed = 1.25})
 	msg.post(enemy, "hit",{damage=self.damage,ignore=self.ignore_armor,final_damage=self.final_damage,boss_damage=self.boss_damage,critical=self.critical})
 	if self.unit then
 		msg.post(self.unit, "bullet_delete",{sender=go.get_id()})

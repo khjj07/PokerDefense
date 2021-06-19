@@ -1,10 +1,10 @@
 local TYPE={
-	{anim="enemy_pawn",hp=5000, armor=0.25, coin=250,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
-	{anim="enemy_knight",hp=25000, armor=0.3, coin=250,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
-	{anim="enemy_bishop",hp=50000, armor=0.4, coin=250,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
-	{anim="enemy_rook",hp=75000, armor=0.5, coin=250,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
-	{anim="enemy_queen",hp=150000, armor=0.35, coin=250,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
-	{anim="enemy_king",hp=250000, armor=0.5, coin=250,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}}
+	{anim="enemy_pawn",hp=5000*1.5, armor=0.25, coin=250,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
+	{anim="enemy_knight",hp=25000*1.5, armor=0.3, coin=250,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
+	{anim="enemy_bishop",hp=50000*1.5, armor=0.4, coin=250,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
+	{anim="enemy_rook",hp=75000*1.5, armor=0.5, coin=250,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
+	{anim="enemy_queen",hp=150000*1.5, armor=0.35, coin=250,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}},
+	{anim="enemy_king",hp=250000*1.5, armor=0.5, coin=250,items={"AXES","DAGGERS","MACES","SPEARS","SWORDS"}}
 }
 local GM = "/game_controller"
 go.property("type", 1)

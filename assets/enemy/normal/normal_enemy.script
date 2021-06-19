@@ -1,10 +1,10 @@
 local TYPE={
-	{anim="enemy_pawn",hp=10, armor=0, coin=5},
-	{anim="enemy_knight",hp=50, armor=0, coin=5},
-	{anim="enemy_bishop",hp=100, armor=0, coin=5},
-	{anim="enemy_rook",hp=150, armor=0, coin=5},
-	{anim="enemy_queen",hp=300, armor=0, coin=5},
-	{anim="enemy_king",hp=500, armor=0, coin=5}
+	{anim="enemy_pawn",hp=10*1.5, armor=0, coin=5},
+	{anim="enemy_knight",hp=50*1.5, armor=0, coin=5},
+	{anim="enemy_bishop",hp=100*1.5, armor=0, coin=5},
+	{anim="enemy_rook",hp=150*1.5, armor=0, coin=5},
+	{anim="enemy_queen",hp=300*1.5, armor=0, coin=5},
+	{anim="enemy_king",hp=500*1.5, armor=0, coin=5}
 }
 local GM = "/game_controller"
 go.property("type", 1)
